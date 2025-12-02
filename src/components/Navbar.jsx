@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, LogOut, User } from "lucide-react";
+import { ShieldCheck, LogOut, User, Sun, Moon } from "lucide-react";
 
-const Navbar = () => {
+const Navbar = ({theme, toggleTheme}) => {
     const navigate = useNavigate();
     useLocation();
 
@@ -17,14 +17,22 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
+        <nav className="border-b bg-card sticky top-0 z-50 shadow-md border-border">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
-                <Link to="/" className="flex items-center space-x-2 font-bold text-xl text-slate-900">
-                    <ShieldCheck className="h-7 w-7 text-indigo-600" />
+                <Link to="/" className="flex items-center space-x-2 font-bold text-xl text-foreground">
+                    <ShieldCheck className="h-7 w-7 text-primary" />
                     <span>RootYou</span>
                 </Link>
 
                 <div className="flex items-center space-x-4">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={toggleTheme}
+                        className="mr-2"
+                    >
+                        {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                    </Button>
                     {token ? (
                         <div className="flex items-center gap-4">
                             <span className="text-sm text-slate-500 hidden md:inline-flex items-center">

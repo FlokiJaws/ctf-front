@@ -59,7 +59,7 @@ const Register = () => {
 
     // rendu final qui utilise le composant enfant et qui display les erreurs si besoin
     return (
-        <div className="flex items-center justify-center min-h-[80vh] bg-slate-50">
+        <div className="flex items-center justify-center min-h-[80vh]">
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle className="text-center">Créer un compte</CardTitle>

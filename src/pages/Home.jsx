@@ -29,27 +29,29 @@ const Home = () => {
     return (
         <div className="container mx-auto py-10 px-4">
             <div className="mb-10 text-center space-y-4">
-                <h1 className="text-4xl font-extrabold text-slate-900">Challenges & Compétitions</h1>
-                <p className="text-xl text-slate-600">Prouvez votre valeur.</p>
+                {/* Suppression de text-slate-900 pour laisser le blanc par défaut */}
+                <h1 className="text-4xl font-extrabold">Challenges & Compétitions</h1>
+                <p className="text-xl text-muted-foreground">Prouvez votre valeur.</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {ctfs.map((ctf) => (
-                    <Card key={ctf.id} className="hover:shadow-xl transition-all duration-300">
+                    <Card key={ctf.id} className="hover:shadow-xl transition-all duration-300 border-border bg-card text-card-foreground">
                         <CardHeader>
                             <div className="flex justify-between items-start">
-                                <div className="p-2 bg-slate-100 rounded-lg">
-                                    <Flag className="w-5 h-5 text-slate-700" />
+                                {/* Fond de l'icône adapté au sombre */}
+                                <div className="p-2 bg-secondary rounded-lg">
+                                    <Flag className="w-5 h-5 text-primary" />
                                 </div>
-                                <span className="text-xs font-medium bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full">
+                                <span className="text-xs font-medium bg-primary/20 text-primary px-2.5 py-0.5 rounded-full">
                                     Ouvert
                                 </span>
                             </div>
                             <CardTitle className="mt-4">{ctf.titre}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-slate-600 text-sm mb-4">{ctf.description}</p>
-                            <div className="flex flex-col space-y-2 text-sm text-slate-500">
+                            <p className="text-muted-foreground text-sm mb-4">{ctf.description}</p>
+                            <div className="flex flex-col space-y-2 text-sm text-muted-foreground">
                                 <div className="flex items-center">
                                     <MapPin className="w-4 h-4 mr-2" />
                                     {ctf.lieu}
@@ -60,8 +62,9 @@ const Home = () => {
                                 </div>
                             </div>
                         </CardContent>
-                        <CardFooter className="pt-4 border-t bg-slate-50/50">
-                            <Button className="w-full bg-slate-900 hover:bg-slate-800">
+                        <CardFooter className="pt-4 border-t border-border">
+                            {/* Bouton en couleur primaire */}
+                            <Button className="w-full bg-primary hover:bg-primary/90 text-white">
                                 <Trophy className="w-4 h-4 mr-2" /> Participer
                             </Button>
                         </CardFooter>
