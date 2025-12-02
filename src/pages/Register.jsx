@@ -1,78 +1,114 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import FormField from "@/components/FormField.jsx";
+// imports des composants simple via shadcn-ui
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Loader2, UserPlus } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+// zod pour les vérifications d'input d'user
+import { z } from "zod";
 
-const registerSchema = z.object({
-    pseudo: z.string().min(2, "Le pseudo doit faire au moins 2 caractères."),
-    email: z.string().email("Adresse email invalide."),
-    password: z.string().min(8, "Le mot de passe doit faire au moins 8 caractères."),
-});
-
+// composant parent
 const Register = () => {
     const navigate = useNavigate();
+
+    const [pseudo, setPseudo] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const [fieldErrors, setFieldErrors] = useState({});
     const [serverError, setServerError] = useState('');
-    const [success, setSuccess] = useState('');
 
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
-        resolver: zodResolver(registerSchema),
-    });
+    // gestionnaire de soumission du formulaire (onSubmit)
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        setFieldErrors({});
+        setServerError('');
 
-    const onSubmit = async (data) => {
-        setServerError(''); setSuccess('');
+        // pour le stockage des donnees de pseudo, email, password
+        const formData = { pseudo, email, password };
+
+        //schema de toutes les erreurs d'user
+        const registerSchema = z.object({
+            pseudo: z.string().min(3, "Le pseudo doit faire au moins 3 caractères"),
+            email: z.string().email("Format d'email invalide"),
+            password: z.string()
+                .min(8, "Le mot de passe doit faire au moins 8 caractères")
+                .regex(/\d/, "Le mot de passe doit contenir au moins un chiffre")
+                .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
+                .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
+                .regex(/[!@#$%^&*(),.?":{}|<>]/, "Le mot de passe doit contenir au moins un caractère spécial")
+        });
+
+        const result = registerSchema.safeParse(formData);
+        if (!result.success) {
+            setFieldErrors(result.error.flatten().fieldErrors);
+            return;
+        }
+
+        //lance la requete api pour l'inscription
         try {
-            await axios.post('http://127.0.0.1:4010/auth/register', data);
-            setSuccess("Compte créé ! Redirection...");
-            setTimeout(() => navigate('/login'), 2000);
+            await axios.post('http://127.0.0.1:4010/auth/register', formData);
+            navigate('/login');
         } catch (err) {
-            setServerError(err.response?.data?.message || "Erreur serveur.");
+            setServerError(err.response?.data?.message || "Erreur lors de l'inscription.");
         }
     };
 
+    // rendu final qui utilise le composant enfant et qui display les erreurs si besoin
     return (
         <div className="flex items-center justify-center min-h-[80vh] bg-slate-50">
-            <Card className="w-full max-w-md shadow-xl border-t-4 border-t-blue-600">
+            <Card className="w-full max-w-md">
                 <CardHeader>
-                    <div className="flex justify-center mb-4"><div className="p-3 bg-blue-100 rounded-full"><UserPlus className="w-8 h-8 text-blue-600" /></div></div>
                     <CardTitle className="text-center">Créer un compte</CardTitle>
-                    <CardDescription className="text-center">Rejoignez le CTF RootYou</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Pseudo</Label>
-                            <Input placeholder="HackerOne" {...register("pseudo")} />
-                            {errors.pseudo && <p className="text-sm text-red-500">{errors.pseudo.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Email</Label>
-                            <Input type="email" placeholder="email@exemple.com" {...register("email")} />
-                            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Mot de passe</Label>
-                            <Input type="password" placeholder="••••••••" {...register("password")} />
-                            {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
-                        </div>
-                        {serverError && <div className="p-3 text-sm text-red-600 bg-red-50 rounded-md">{serverError}</div>}
-                        {success && <div className="p-3 text-sm text-green-600 bg-green-50 rounded-md">{success}</div>}
-                        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isSubmitting}>
-                            {isSubmitting ? <Loader2 className="animate-spin" /> : "S'inscrire"}
-                        </Button>
+                    <form onSubmit={handleRegister} className="space-y-4">
+                        <FormField
+                            label="Pseudo"
+                            placeholder="pseudo"
+                            value={pseudo}
+                            onChange={(e) => setPseudo(e.target.value)}
+                            error={fieldErrors.pseudo}
+                        />
+
+                        <FormField
+                            label="Email"
+                            type="email"
+                            placeholder="admin@rootyou.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            error={fieldErrors.email}
+                        />
+
+                        <FormField
+                            label="Mot de passe"
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            error={fieldErrors.password}
+                        />
+
+                        {serverError && (
+                            <div className="text-sm text-red-600 bg-red-50 p-2 rounded border border-red-200">
+                                {serverError}
+                            </div>
+                        )}
+
+                        <Button type="submit" className="w-full">S'inscrire</Button>
                     </form>
                 </CardContent>
-                <CardFooter className="justify-center border-t p-4">
-                    <p className="text-sm text-muted-foreground">Déjà inscrit ? <Link to="/login" className="text-blue-600 font-semibold">Se connecter</Link></p>
+                <CardFooter className="justify-center">
+                    <p className="text-sm text-slate-500">
+                        Déjà inscrit ? <Link to="/login" className="text-blue-600 font-semibold">Se connecter</Link>
+                    </p>
                 </CardFooter>
             </Card>
         </div>
     );
 };
+
 export default Register;
