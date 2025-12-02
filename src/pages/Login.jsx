@@ -21,15 +21,17 @@ const Login = () => {
         setError('');
 
         try {
-            const response = await axios.post('http://127.0.0.1:4010/auth/login', {
+            const response = await axios.post('http://localhost:8080/auth/login', {
                 email,
                 password
             });
 
-            // stockage local
-            localStorage.setItem('token', `${response.data.tokenType} ${response.data.accessToken}`);
-            localStorage.setItem('userEmail', email);
+            const token = response.data;
 
+            // 1. On stocke le token BRUT (sans "Bearer ")
+            localStorage.setItem('token', token);
+
+            // 2. Plus besoin de stocker 'userEmail', il est dans le token !
             navigate('/');
         } catch (err) {
             setError("Email ou mot de passe incorrect.");

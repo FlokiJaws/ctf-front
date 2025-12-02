@@ -50,7 +50,7 @@ const Register = () => {
 
         //lance la requete api pour l'inscription
         try {
-            await axios.post('http://127.0.0.1:4010/auth/register', formData);
+            await axios.post('http://localhost:8080/auth/register/participant', formData);
             navigate('/login');
         } catch (err) {
             setServerError(err.response?.data?.message || "Erreur lors de l'inscription.");
