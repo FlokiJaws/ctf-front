@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
 import Navbar from './components/Navbar';
+import CtfDetails from './pages/CtfDetail';
 
 function App() {
 
@@ -27,6 +28,8 @@ function App() {
                         <Route path="/" element={<Home />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
+
+                        <Route path="/ctf/:id" element={<CtfDetails />} />
                     </Routes>
                 </main>
             </div>
