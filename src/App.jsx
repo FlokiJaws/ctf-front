@@ -7,6 +7,10 @@ import AllCtfs from './pages/AllCtfs';
 import Navbar from './components/Navbar';
 import CtfDetails from './pages/CtfDetail';
 import Profile from './pages/Profile';
+import AdminUsers from "@/pages/AdminUsers.jsx";
+import AdminCtfValidation from "@/pages/AdminCtfValidation.jsx";
+import AdminCtfDelete from "@/pages/AdminCtfDelete.jsx";
+import AdminCtfEdit from "@/pages/AdminCtfEdit.jsx";
 
 function App() {
     const [theme, setTheme] = useState('dark');
@@ -30,6 +34,10 @@ function App() {
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/ctf/:id" element={<CtfDetails />} />
                         <Route path="/all-ctfs" element={<AllCtfs />} />
+                        <Route path="/admin/users" element={<AdminUsers />} />
+                        <Route path="/admin/ctf-validation" element={<AdminCtfValidation />} />
+                        <Route path="/admin/ctf-delete" element={<AdminCtfDelete />} />
+                        <Route path="/admin/ctf-edit" element={<AdminCtfEdit />} />
                     </Routes>
                 </main>
             </div>
