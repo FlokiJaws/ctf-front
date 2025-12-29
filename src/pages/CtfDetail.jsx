@@ -1,68 +1,105 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
 import { jwtDecode } from "jwt-decode";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { MapPin, Eye, Calendar, ShieldAlert } from "lucide-react";
+import { MapPin, Eye, Calendar, ShieldAlert, Send, MessageSquare } from "lucide-react";
 
 const CtfDetails = () => {
     const navigate = useNavigate();
     const {id} = useParams();
 
     const [ctf, setctf] = useState(null);
+    const [comments, setComments] = useState([]);
     const [loading, setloading] = useState(true);
     const [error, setError] = useState(null);
+    const [commentText, setCommentText] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-
-        //si token non valide on va sur la page de log
         if (!token) {
             navigate("/login");
             return;
         }
 
-        try{
+        try {
             const decoded = jwtDecode(token);
             const currentTime = Date.now() / 1000;
-
             if (decoded.exp && decoded.exp < currentTime) {
                 localStorage.removeItem("token");
                 navigate("/login");
                 return;
             }
-        } catch (e){
+        } catch (e) {
             localStorage.removeItem("token");
             navigate("/login");
             return;
         }
 
-        axios.get(`http://127.0.0.1:4010/ctfs/${id}`,{
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+        // Récupérer les détails du CTF
+        axios.get(`http://localhost:8080/ctfs/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
         })
-        .then(res => {
-            setctf(res.data);
-            setloading(false);
-        })
-        .catch(err => {
-            console.log(err);
-            if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message);
-            } else if (err.response && err.response.status === 404) {
-                // Fallback si le backend n'envoie pas de JSON valide pour une 404
-                setError("CTF introuvable (404).");
-            } else {
-                // Erreur réseau ou autre (serveur éteint, pas d'internet...)
-                setError("Impossible de contacter le serveur.");
-            }
+            .then(res => {
+                setctf(res.data);
+                setloading(false);
+            })
+            .catch(err => {
+                console.log(err);
+                if (err.response?.data?.message) {
+                    setError(err.response.data.message);
+                } else if (err.response?.status === 404) {
+                    setError("CTF introuvable (404).");
+                } else {
+                    setError("Impossible de contacter le serveur.");
+                }
+                setloading(false);
+            });
 
-            setloading(false);
-        });
-    }, [id, navigate]);
+        // Récupérer les commentaires du CTF
+        axios.get(`http://localhost:8080/comments/ctf/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        })
+            .then(res => {
+                setComments(res.data || []);
+            })
+            .catch(err => {
+                console.log("Erreur lors du chargement des commentaires", err);
+            });
+    }, [id, navigate, token]);
+
+    const handleAddComment = async (e) => {
+        e.preventDefault();
+
+        if (!commentText.trim()) return;
+
+        setSubmitting(true);
+        try {
+            await axios.post(
+                `http://127.0.0.1:4010/comments/new/${id}`,
+                { contenu: commentText },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            // Ajouter le nouveau commentaire à la liste
+            const decoded = jwtDecode(token);
+            const newComment = {
+                id: Date.now(),
+                contenu: commentText,
+                userPseudo: decoded.sub,
+                date: new Date().toISOString()
+            };
+
+            setComments([newComment, ...comments]);
+            setCommentText('');
+        } catch (err) {
+            console.error("Erreur lors de l'ajout du commentaire", err);
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     if (loading) return <div className="text-center p-20 text-xl">Chargement des données du QG...</div>;
 
@@ -75,13 +112,12 @@ const CtfDetails = () => {
     );
 
     return (
-        <div className="container mx-auto py-10 px-4">
+        <div className="container mx-auto py-10 px-4 space-y-8">
             {/* Carte principale de détail */}
             <Card className="max-w-4xl mx-auto border-border bg-card shadow-2xl">
                 <CardHeader className="border-b border-border pb-6">
                     <div className="flex justify-between items-center">
                         <div>
-                            {/* Titre (specs: ctf_info.titre) */}
                             <CardTitle className="text-4xl font-extrabold text-primary mb-2">
                                 {ctf.titre}
                             </CardTitle>
@@ -90,14 +126,13 @@ const CtfDetails = () => {
                             </span>
                         </div>
                         <div className="text-center p-4 bg-secondary rounded-xl">
-                            <span className="block text-2xl font-bold">{ctf.nb_vues}</span>
+                            <span className="block text-2xl font-bold">{ctf.nbVues}</span>
                             <span className="text-xs text-muted-foreground uppercase tracking-wide">Vues</span>
                         </div>
                     </div>
                 </CardHeader>
 
                 <CardContent className="pt-6 space-y-8">
-                    {/* Description (specs: ctf_info.description) */}
                     <div className="prose dark:prose-invert max-w-none">
                         <h3 className="text-xl font-semibold mb-2">Briefing de mission</h3>
                         <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
@@ -110,12 +145,10 @@ const CtfDetails = () => {
                             <MapPin className="text-blue-500 h-6 w-6" />
                             <div>
                                 <p className="text-sm text-muted-foreground">Lieu / Plateforme</p>
-                                {/* Lieu (specs: ctf_info.lieu) */}
                                 <p className="font-medium">{ctf.lieu}</p>
                             </div>
                         </div>
 
-                        {/* Placeholder pour une date si tu en ajoutes une plus tard dans le YAML */}
                         <div className="flex items-center space-x-3 p-4 bg-secondary/50 rounded-lg">
                             <Calendar className="text-orange-500 h-6 w-6" />
                             <div>
@@ -134,6 +167,66 @@ const CtfDetails = () => {
                         Rejoindre le CTF
                     </Button>
                 </CardFooter>
+            </Card>
+
+            {/* Section Commentaires */}
+            <Card className="max-w-4xl mx-auto border-border bg-card">
+                <CardHeader className="border-b border-border pb-4">
+                    <div className="flex items-center space-x-2">
+                        <MessageSquare className="text-primary h-5 w-5" />
+                        <CardTitle className="text-2xl">Commentaires ({comments.length})</CardTitle>
+                    </div>
+                </CardHeader>
+
+                <CardContent className="pt-6 space-y-6">
+                    {/* Formulaire d'ajout de commentaire */}
+                    <div className="space-y-3">
+                        <div className="flex items-end gap-3">
+                            <textarea
+                                value={commentText}
+                                onChange={(e) => setCommentText(e.target.value)}
+                                placeholder="Partage ton avis ou pose une question..."
+                                className="flex-1 px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-none"
+                                rows="3"
+                                disabled={submitting}
+                            />
+                            <Button
+                                onClick={handleAddComment}
+                                size="icon"
+                                disabled={submitting || !commentText.trim()}
+                                className="flex-shrink-0 h-12 w-12"
+                            >
+                                <Send className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Liste des commentaires */}
+                    <div className="space-y-4">
+                        {comments.length > 0 ? (
+                            comments.map((comment) => (
+                                <div key={comment.id} className="p-4 bg-secondary/30 rounded-lg border border-border/50 hover:border-border transition-colors">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="font-semibold text-sm text-primary">
+                                            {comment.userPseudo}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {comment.date ? new Date(comment.date).toLocaleString('fr-FR') : 'À l\'instant'}
+                                        </span>
+                                    </div>
+                                    <p className="text-muted-foreground whitespace-pre-wrap break-words">
+                                        {comment.contenu}
+                                    </p>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-8 text-muted-foreground">
+                                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                                <p>Aucun commentaire pour le moment. Sois le premier à commenter !</p>
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
             </Card>
         </div>
     );

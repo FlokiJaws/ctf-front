@@ -63,6 +63,9 @@ const Navbar = ({theme, toggleTheme}) => {
                                 <LogOut size={18} className="mr-2" />
                                 Déconnexion
                             </Button>
+                            <Link to="/profile">
+                                <Button variant="outline">Profil</Button>
+                            </Link>
                         </>
                     ) : (
                         <>

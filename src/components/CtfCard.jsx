@@ -42,7 +42,7 @@ const CtfCard = ({ ctf, featured = false }) => {
                     </div>
                     <div className="flex items-center">
                         <Eye className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span>{ctf.nb_vues} vues</span>
+                        <span>{ctf.nbVues} vues</span>
                     </div>
                 </div>
             </CardContent>

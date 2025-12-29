@@ -5,13 +5,11 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Navbar from './components/Navbar';
 import CtfDetails from './pages/CtfDetail';
+import Profile from './pages/Profile';
 
 function App() {
-
     const [theme, setTheme] = useState('dark');
-    const toggleTheme = () => {
-        setTheme((prevTheme) => (prevTheme === 'dark' ? 'light' : 'dark'));
-    };
+    const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
     useEffect(() => {
         const root = window.document.documentElement;
@@ -28,7 +26,7 @@ function App() {
                         <Route path="/" element={<Home />} />
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
-
+                        <Route path="/profile" element={<Profile />} />
                         <Route path="/ctf/:id" element={<CtfDetails />} />
                     </Routes>
                 </main>
@@ -36,4 +34,5 @@ function App() {
         </Router>
     );
 }
+
 export default App;
