@@ -45,10 +45,10 @@ const Home = () => {
             {/* Header Section */}
             <div className="py-10 text-center space-y-3 px-4 bg-gradient-to-b from-background to-secondary/20">
                 <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent leading-tight px-2">
-                    Top 3 des CTFs les plus vus
+                    Top 3 des CTFs du moment
                 </h1>
                 <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Les compétitions les plus populaires du moment
+                    Les compétitions les plus vues
                 </p>
             </div>
 

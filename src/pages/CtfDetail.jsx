@@ -4,7 +4,9 @@ import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { MapPin, Eye, Calendar, ShieldAlert, Send, MessageSquare } from "lucide-react";
+import { MapPin, Eye, Calendar, ShieldAlert, Send, MessageSquare, ArrowLeft, Check } from "lucide-react";
+
+const STORAGE_KEY = "joinedCtfs";
 
 const CtfDetails = () => {
     const navigate = useNavigate();
@@ -16,6 +18,7 @@ const CtfDetails = () => {
     const [error, setError] = useState(null);
     const [commentText, setCommentText] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [isJoined, setIsJoined] = useState(false);
     const token = localStorage.getItem("token");
 
     useEffect(() => {
@@ -68,7 +71,28 @@ const CtfDetails = () => {
             .catch(err => {
                 console.log("Erreur lors du chargement des commentaires", err);
             });
+
+        // Vérifier si déjà rejoint
+        const joinedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        setIsJoined(joinedIds.includes(parseInt(id)));
     }, [id, navigate, token]);
+
+    const handleJoinCtf = () => {
+        const joinedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+        if (!joinedIds.includes(parseInt(id))) {
+            joinedIds.push(parseInt(id));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(joinedIds));
+            setIsJoined(true);
+        }
+    };
+
+    const handleLeaveCtf = () => {
+        let joinedIds = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        joinedIds = joinedIds.filter(ctfId => ctfId !== parseInt(id));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(joinedIds));
+        setIsJoined(false);
+    };
 
     const handleAddComment = async (e) => {
         e.preventDefault();
@@ -78,7 +102,7 @@ const CtfDetails = () => {
         setSubmitting(true);
         try {
             await axios.post(
-                `http://127.0.0.1:4010/comments/new/${id}`,
+                `http://localhost:8080/comments/new/${id}`,
                 { contenu: commentText },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -107,7 +131,7 @@ const CtfDetails = () => {
         <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
             <ShieldAlert size={48} className="text-destructive" />
             <p className="text-xl font-bold text-destructive">{error}</p>
-            <Button variant="outline" onClick={() => navigate('/')}>Retour à la liste</Button>
+            <Button variant="outline" onClick={() => navigate(-1)}>Retour</Button>
         </div>
     );
 
@@ -140,7 +164,7 @@ const CtfDetails = () => {
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols gap-6">
                         <div className="flex items-center space-x-3 p-4 bg-secondary/50 rounded-lg">
                             <MapPin className="text-blue-500 h-6 w-6" />
                             <div>
@@ -148,23 +172,31 @@ const CtfDetails = () => {
                                 <p className="font-medium">{ctf.lieu}</p>
                             </div>
                         </div>
-
-                        <div className="flex items-center space-x-3 p-4 bg-secondary/50 rounded-lg">
-                            <Calendar className="text-orange-500 h-6 w-6" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">Date</p>
-                                <p className="font-medium">À déterminer</p>
-                            </div>
-                        </div>
                     </div>
                 </CardContent>
 
-                <CardFooter className="flex justify-end gap-4 border-t border-border pt-6">
-                    <Button variant="ghost" onClick={() => navigate('/')}>
-                        Annuler
+                <CardFooter className="flex justify-between gap-4 border-t border-border pt-6">
+                    <Button variant="ghost" onClick={() => navigate(-1)} className="flex items-center gap-2">
+                        <ArrowLeft size={18} />
+                        Retour
                     </Button>
-                    <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                        Rejoindre le CTF
+                    <Button
+                        size="lg"
+                        onClick={isJoined ? handleLeaveCtf : handleJoinCtf}
+                        className={`flex items-center gap-2 ${
+                            isJoined
+                                ? 'bg-red-600 hover:bg-red-700 text-white'
+                                : 'bg-primary hover:bg-primary/90'
+                        }`}
+                    >
+                        {isJoined ? (
+                            <>
+                                <Check size={20} />
+                                Quitter
+                            </>
+                        ) : (
+                            'Rejoindre le CTF'
+                        )}
                     </Button>
                 </CardFooter>
             </Card>

@@ -3,17 +3,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { MapPin, Eye, Filter } from "lucide-react";
+import { MapPin, Eye, ChevronLeft, ChevronRight, SortAsc, SortDesc } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 
 const AllCtfs = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
 
-    const [ctfs, setCtfs] = useState([]);
+    const [allCtfs, setAllCtfs] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortBy, setSortBy] = useState('none');
+    const [selectedCity, setSelectedCity] = useState('');
+
+    const ITEMS_PER_PAGE = 12;
 
     useEffect(() => {
         if (!token) {
@@ -22,13 +28,48 @@ const AllCtfs = () => {
         }
 
         axios.get('http://localhost:8080/ctfs/list/actif', { headers: { Authorization: `Bearer ${token}` } })
-            .then(res => setCtfs(res.data || []))
+            .then(res => setAllCtfs(res.data || []))
             .catch(err => {
                 console.error("Erreur", err);
-                setCtfs([]);
+                setAllCtfs([]);
             })
             .finally(() => setLoading(false));
-    }, [filter, token, navigate]);
+    }, [token, navigate]);
+
+    // Récupérer les villes uniques et triées
+    const cities = [...new Set(allCtfs.map(ctf => ctf.lieu))].sort();
+
+    // Filtrer et trier les CTFs
+    const filteredCtfs = allCtfs
+        .filter(ctf => {
+            const searchLower = searchTerm.toLowerCase();
+            const matchesSearch = (
+                ctf.titre.toLowerCase().includes(searchLower) ||
+                ctf.description.toLowerCase().includes(searchLower) ||
+                ctf.lieu.toLowerCase().includes(searchLower)
+            );
+            const matchesCity = !selectedCity || ctf.lieu === selectedCity;
+            return matchesSearch && matchesCity;
+        })
+        .sort((a, b) => {
+            if (sortBy === 'vues') return b.nbVues - a.nbVues;
+            if (sortBy === 'lieu') return a.lieu.localeCompare(b.lieu);
+            return 0;
+        });
+
+    const totalPages = Math.ceil(filteredCtfs.length / ITEMS_PER_PAGE);
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedCtfs = filteredCtfs.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+        window.scrollTo(0, 0);
+    };
+
+    const handleSearch = (value) => {
+        setSearchTerm(value);
+        setCurrentPage(1);
+    };
 
     if (loading) {
         return <div className="text-center p-10 text-lg">Chargement des CTFs...</div>;
@@ -37,26 +78,64 @@ const AllCtfs = () => {
     return (
         <div className="container mx-auto py-10 px-4 space-y-8">
             {/* Header */}
-            <div className="space-y-4">
+            <div className="space-y-2">
                 <h1 className="text-4xl font-extrabold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
                     Tous les CTFs
                 </h1>
                 <p className="text-muted-foreground text-lg">
-                    {ctfs.length} compétition{ctfs.length > 1 ? 's' : ''} disponible{ctfs.length > 1 ? 's' : ''}
+                    {filteredCtfs.length} compétition{filteredCtfs.length > 1 ? 's' : ''} trouvée{filteredCtfs.length > 1 ? 's' : ''}
                 </p>
             </div>
 
-            {/* Grille de CTFs */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {ctfs.length > 0 ? (
-                    ctfs.map(ctf => (
-                        <Card key={ctf.id} className="border-2 border-primary/40 hover:border-primary/70 transition-all duration-300 hover:shadow-lg flex flex-col">
+            {/* Recherche et Filtres */}
+            <div className="flex gap-5 flex-wrap items-end">
+                <div className="w-80">
+                    <Input
+                        placeholder="Rechercher..."
+                        value={searchTerm}
+                        onChange={(e) => handleSearch(e.target.value)}
+                    />
+                </div>
+
+                <select
+                    value={selectedCity}
+                    onChange={(e) => {
+                        setSelectedCity(e.target.value);
+                        setCurrentPage(1);
+                    }}
+                    className="px-3 py-2 rounded-md border border-input bg-background text-foreground text-sm"
+                >
+                    <option value="">Toutes les villes</option>
+                    {cities.map(city => (
+                        <option key={city} value={city}>{city}</option>
+                    ))}
+                </select>
+
+                <Button
+                    variant={sortBy === 'vues' ? 'default' : 'outline'}
+                    onClick={() => setSortBy(sortBy === 'vues' ? 'none' : 'vues')}
+                    className="flex items-center gap-2"
+                    size="sm"
+                >
+                    {sortBy === 'vues' ? <SortDesc size={14} /> : <SortAsc size={14} />}
+                    Vues
+                </Button>
+            </div>
+
+            {/* Liste de CTFs */}
+            <div className="space-y-4">
+                {paginatedCtfs.length > 0 ? (
+                    paginatedCtfs.map(ctf => (
+                        <Card key={ctf.id} className="border-2 border-primary/40 hover:border-primary/70 transition-all duration-300 hover:shadow-lg">
                             <CardHeader>
                                 <div className="flex justify-between items-start gap-4">
-                                    <div>
-                                        <CardTitle className="text-xl line-clamp-2">
+                                    <div className="flex-1">
+                                        <CardTitle className="text-2xl mb-2">
                                             {ctf.titre}
                                         </CardTitle>
+                                        <p className="text-sm text-muted-foreground">
+                                            {ctf.description}
+                                        </p>
                                     </div>
                                     <span className="text-xs font-medium bg-primary/20 text-primary px-2.5 py-0.5 rounded-full flex-shrink-0">
                                         Ouvert
@@ -64,34 +143,28 @@ const AllCtfs = () => {
                                 </div>
                             </CardHeader>
 
-                            <CardContent className="flex-1 space-y-4">
-                                <p className="text-sm text-muted-foreground line-clamp-2">
-                                    {ctf.description}
-                                </p>
-
+                            <CardContent className="flex justify-between items-center">
                                 <div className="space-y-2 text-sm text-muted-foreground">
                                     <div className="flex items-center gap-2">
-                                        <MapPin size={16} className="flex-shrink-0" />
+                                        <MapPin size={16} />
                                         <span>{ctf.lieu}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <Eye size={16} className="flex-shrink-0" />
+                                        <Eye size={16} />
                                         <span>{ctf.nbVues} vues</span>
                                     </div>
                                 </div>
 
                                 {ctf.organisateur && (
-                                    <div className="pt-2 border-t border-border">
-                                        <p className="text-xs text-muted-foreground">
-                                            Organisé par <span className="font-semibold text-foreground">{ctf.organisateur}</span>
-                                        </p>
-                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Organisé par <span className="font-semibold text-foreground">{ctf.organisateur}</span>
+                                    </p>
                                 )}
                             </CardContent>
 
                             <CardFooter className="border-t border-border pt-4">
                                 <Button
-                                    className="w-full bg-primary hover:bg-primary/90"
+                                    className="ml-auto bg-primary hover:bg-primary/90"
                                     onClick={() => navigate(`/ctf/${ctf.id}`)}
                                 >
                                     Voir les détails
@@ -100,13 +173,42 @@ const AllCtfs = () => {
                         </Card>
                     ))
                 ) : (
-                    <div className="col-span-full text-center py-12">
+                    <div className="text-center py-12">
                         <p className="text-lg text-muted-foreground">
-                            Aucun CTF disponible pour le moment
+                            Aucun CTF correspondant à ta recherche
                         </p>
                     </div>
                 )}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 pt-8">
+                    <Button
+                        variant="outline"
+                        onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-2"
+                    >
+                        <ChevronLeft size={16} />
+                        Précédent
+                    </Button>
+
+                    <span className="text-sm text-muted-foreground">
+                        Page {currentPage} sur {totalPages}
+                    </span>
+
+                    <Button
+                        variant="outline"
+                        onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center gap-2"
+                    >
+                        Suivant
+                        <ChevronRight size={16} />
+                    </Button>
+                </div>
+            )}
         </div>
     );
 };
