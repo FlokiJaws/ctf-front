@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CtfCard from '@/components/CtfCard.jsx';
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
-const CTFS_URL = "http://localhost:8080/ctfs/list/actif"; // <-- adapte si ton path diffère
+const CTFS_URL = "http://localhost:8080/ctfs/list/actif";
 
 const Home = () => {
+    const navigate = useNavigate();
     const [ctfs, setCtfs] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -12,7 +16,6 @@ const Home = () => {
         const token = localStorage.getItem("token");
 
         axios.get(CTFS_URL, {
-            // si ton endpoint est protégé par JWT, on envoie le token
             headers: token ? { Authorization: `Bearer ${token}` } : undefined
         })
             .then(res => {
@@ -38,9 +41,9 @@ const Home = () => {
     }
 
     return (
-        <div className="h-[calc(100vh-64px)] flex flex-col bg-gradient-to-b from-background to-secondary/20 overflow-hidden">
+        <div className="flex flex-col bg-background">
             {/* Header Section */}
-            <div className="py-8 text-center space-y-3 px-4 flex-shrink-0">
+            <div className="py-10 text-center space-y-3 px-4 bg-gradient-to-b from-background to-secondary/20">
                 <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent leading-tight px-2">
                     Top 3 des CTFs les plus vus
                 </h1>
@@ -50,7 +53,7 @@ const Home = () => {
             </div>
 
             {/* CTF Cards Section */}
-            <div className="flex-1 flex items-center justify-center px-4 overflow-hidden">
+            <div className="flex items-center justify-center px-4 py-12">
                 {ctfs.length > 0 ? (
                     <div className="w-full max-w-7xl">
                         {ctfs.length === 1 ? (
@@ -92,6 +95,17 @@ const Home = () => {
                         Aucun CTF disponible pour le moment
                     </div>
                 )}
+            </div>
+
+            {/* Button Section */}
+            <div className="flex justify-center px-4 py-10">
+                <Button
+                    onClick={() => navigate('/all-ctfs')}
+                    className="bg-primary hover:bg-primary/90 flex items-center gap-2"
+                >
+                    Voir tous les CTFs
+                    <ArrowRight size={16} />
+                </Button>
             </div>
         </div>
     );

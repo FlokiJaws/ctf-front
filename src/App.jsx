@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import AllCtfs from './pages/AllCtfs';
 import Navbar from './components/Navbar';
 import CtfDetails from './pages/CtfDetail';
 import Profile from './pages/Profile';
@@ -28,6 +29,7 @@ function App() {
                         <Route path="/register" element={<Register />} />
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/ctf/:id" element={<CtfDetails />} />
+                        <Route path="/all-ctfs" element={<AllCtfs />} />
                     </Routes>
                 </main>
             </div>

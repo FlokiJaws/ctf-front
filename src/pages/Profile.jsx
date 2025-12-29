@@ -50,7 +50,7 @@ const Profile = () => {
 
         // On récupère la liste (comme Home.jsx) puis on filtre
         axios
-            .get("http://localhost:8080/ctfs/list/valide", {
+            .get("http://localhost:8080/ctfs/list/actif", {
                 headers: { Authorization: `Bearer ${token}` },
             })
             .then((res) => {
