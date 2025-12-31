@@ -10,7 +10,6 @@ import Profile from './pages/Profile';
 import MyCtfs from './pages/MyCtfs';
 import OrganizerCtfs from './pages/OrganizerCtfs';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminUsers from "@/pages/AdminUsers.jsx";
 import AdminCtfValidation from "@/pages/AdminCtfValidation.jsx";
 import AdminCtfDelete from "@/pages/AdminCtfDelete.jsx";
 import AdminCtfEdit from "@/pages/AdminCtfEdit.jsx";
