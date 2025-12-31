@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CtfCard from '@/components/CtfCard.jsx';
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 
 const CTFS_URL = "http://localhost:8080/ctfs/list/actif";
+const HIGHEST_SCORES_URL = "http://localhost:8080/user/highest_score";
 
 const Home = () => {
     const navigate = useNavigate();
     const [ctfs, setCtfs] = useState([]);
+    const [topScores, setTopScores] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -20,24 +22,33 @@ const Home = () => {
         })
             .then(res => {
                 const all = res.data || [];
-
-                // Top 3 par nbVues
                 const top3 = [...all]
                     .sort((a, b) => (b.nbVues ?? 0) - (a.nbVues ?? 0))
                     .slice(0, 3);
-
                 setCtfs(top3);
-                setLoading(false);
             })
             .catch(err => {
-                console.error("Erreur de chargement", err);
+                console.error("Erreur chargement CTFs", err);
                 setCtfs([]);
+            })
+            .finally(() => {
                 setLoading(false);
+            });
+
+        axios.get(HIGHEST_SCORES_URL, {
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined
+        })
+            .then(res => {
+                setTopScores(res.data || []);
+            })
+            .catch(err => {
+                console.error("Erreur chargement scores", err);
+                setTopScores([]);
             });
     }, []);
 
     if (loading) {
-        return <div className="text-center p-10">Chargement des compétitions.</div>;
+        return <div className="text-center p-10">Chargement des compétitions...</div>;
     }
 
     return (
@@ -98,7 +109,7 @@ const Home = () => {
             </div>
 
             {/* Button Section */}
-            <div className="flex justify-center px-4 py-10">
+            <div className="flex justify-center px-4 pb-6">
                 <Button
                     onClick={() => navigate('/all-ctfs')}
                     className="bg-primary hover:bg-primary/90 flex items-center gap-2"
@@ -107,6 +118,36 @@ const Home = () => {
                     <ArrowRight size={16} />
                 </Button>
             </div>
+
+            {/* Top 3 Scores - Compact */}
+            {topScores.length > 0 && (
+                <div className="px-4 pb-10">
+                    <div className="container mx-auto max-w-4xl">
+                        <div className="flex items-center justify-center gap-2 mb-4">
+                            <Trophy className="text-yellow-500" size={20} />
+                            <h2 className="text-xl font-bold">Top 3 Meilleurs Scores</h2>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {topScores.slice(0, 3).map((user, index) => (
+                                <div
+                                    key={user.id}
+                                    className="bg-card border border-border rounded-lg p-4 text-center hover:shadow-md transition-shadow"
+                                >
+                                    <div className="text-2xl mb-1">
+                                        {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                                    </div>
+                                    <p className="text-sm font-medium truncate">
+                                        {user.email || user.username || "Utilisateur"}
+                                    </p>
+                                    <p className="text-lg font-bold text-primary mt-1">
+                                        {user.score} pts
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

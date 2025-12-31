@@ -63,12 +63,53 @@ const AllCtfs = () => {
 
     const handlePageChange = (newPage) => {
         setCurrentPage(newPage);
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleSearch = (value) => {
         setSearchTerm(value);
         setCurrentPage(1);
+    };
+
+    // Calculer les numéros de pages à afficher
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisible = 5;
+
+        if (totalPages <= maxVisible + 2) {
+            // Afficher toutes les pages si peu de pages
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            // Logique pour afficher 5 pages + ... + dernière
+            if (currentPage <= 3) {
+                // Début : 1 2 3 4 5 ... dernière
+                for (let i = 1; i <= maxVisible; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            } else if (currentPage >= totalPages - 2) {
+                // Fin : 1 ... avant-dernière-4 avant-dernière-3 avant-dernière-2 avant-dernière-1 dernière
+                pages.push(1);
+                pages.push('...');
+                for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                // Milieu : 1 ... currentPage-2 currentPage-1 currentPage currentPage+1 currentPage+2 ... dernière
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 2; i <= currentPage + 2; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+
+        return pages;
     };
 
     if (loading) {
@@ -155,9 +196,9 @@ const AllCtfs = () => {
                                     </div>
                                 </div>
 
-                                {ctf.organisateur && (
+                                {ctf.organisateurPseudo && (
                                     <p className="text-xs text-muted-foreground">
-                                        Organisé par <span className="font-semibold text-foreground">{ctf.organisateur}</span>
+                                        Organisé par <span className="font-semibold text-foreground">{ctf.organisateurPseudo}</span>
                                     </p>
                                 )}
                             </CardContent>
@@ -181,30 +222,42 @@ const AllCtfs = () => {
                 )}
             </div>
 
-            {/* Pagination */}
+            {/* Pagination améliorée */}
             {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-4 pt-8">
+                <div className="flex items-center justify-center gap-2 pt-8">
                     <Button
                         variant="outline"
                         onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
                         disabled={currentPage === 1}
-                        className="flex items-center gap-2"
+                        size="sm"
                     >
                         <ChevronLeft size={16} />
-                        Précédent
                     </Button>
 
-                    <span className="text-sm text-muted-foreground">
-                        Page {currentPage} sur {totalPages}
-                    </span>
+                    {getPageNumbers().map((pageNum, idx) => (
+                        pageNum === '...' ? (
+                            <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground">
+                                ...
+                            </span>
+                        ) : (
+                            <Button
+                                key={pageNum}
+                                variant={currentPage === pageNum ? "default" : "outline"}
+                                onClick={() => handlePageChange(pageNum)}
+                                size="sm"
+                                className="min-w-[40px]"
+                            >
+                                {pageNum}
+                            </Button>
+                        )
+                    ))}
 
                     <Button
                         variant="outline"
-                        onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
+                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
-                        className="flex items-center gap-2"
+                        size="sm"
                     >
-                        Suivant
                         <ChevronRight size={16} />
                     </Button>
                 </div>

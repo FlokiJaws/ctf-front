@@ -34,8 +34,14 @@ const Login = () => {
             // 2. Plus besoin de stocker 'userEmail', il est dans le token !
             navigate('/');
         } catch (err) {
-            setError("Email ou mot de passe incorrect.");
             console.error(err);
+
+            // Récupérer le message du backend si disponible
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError("Email ou mot de passe incorrect.");
+            }
         }
     };
 
