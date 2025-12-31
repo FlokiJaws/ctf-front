@@ -39,7 +39,6 @@ function App() {
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
                         <Route path="/ctf/:id" element={<CtfDetails />} />
                         <Route path="/all-ctfs" element={<AllCtfs />} />
-                        <Route path="/admin/users" element={<AdminUsers />} />
                         <Route path="/admin/ctf-validation" element={<AdminCtfValidation />} />
                         <Route path="/admin/ctf-delete" element={<AdminCtfDelete />} />
                         <Route path="/admin/ctf-edit" element={<AdminCtfEdit />} />
