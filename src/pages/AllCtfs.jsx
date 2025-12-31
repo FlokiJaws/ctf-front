@@ -1,12 +1,13 @@
-// src/pages/AllCtfs.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { MapPin, Eye, ChevronLeft, ChevronRight, SortAsc, SortDesc } from "lucide-react";
+import { MapPin, Eye, SortAsc, SortDesc } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import Pagination from "@/components/Pagination";
+
+const ITEMS_PER_PAGE = 12;
 
 const AllCtfs = () => {
     const navigate = useNavigate();
@@ -18,8 +19,6 @@ const AllCtfs = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('none');
     const [selectedCity, setSelectedCity] = useState('');
-
-    const ITEMS_PER_PAGE = 12;
 
     useEffect(() => {
         if (!token) {
@@ -36,10 +35,8 @@ const AllCtfs = () => {
             .finally(() => setLoading(false));
     }, [token, navigate]);
 
-    // Récupérer les villes uniques et triées
     const cities = [...new Set(allCtfs.map(ctf => ctf.lieu))].sort();
 
-    // Filtrer et trier les CTFs
     const filteredCtfs = allCtfs
         .filter(ctf => {
             const searchLower = searchTerm.toLowerCase();
@@ -71,54 +68,12 @@ const AllCtfs = () => {
         setCurrentPage(1);
     };
 
-    // Calculer les numéros de pages à afficher
-    const getPageNumbers = () => {
-        const pages = [];
-        const maxVisible = 5;
-
-        if (totalPages <= maxVisible + 2) {
-            // Afficher toutes les pages si peu de pages
-            for (let i = 1; i <= totalPages; i++) {
-                pages.push(i);
-            }
-        } else {
-            // Logique pour afficher 5 pages + ... + dernière
-            if (currentPage <= 3) {
-                // Début : 1 2 3 4 5 ... dernière
-                for (let i = 1; i <= maxVisible; i++) {
-                    pages.push(i);
-                }
-                pages.push('...');
-                pages.push(totalPages);
-            } else if (currentPage >= totalPages - 2) {
-                // Fin : 1 ... avant-dernière-4 avant-dernière-3 avant-dernière-2 avant-dernière-1 dernière
-                pages.push(1);
-                pages.push('...');
-                for (let i = totalPages - maxVisible + 1; i <= totalPages; i++) {
-                    pages.push(i);
-                }
-            } else {
-                // Milieu : 1 ... currentPage-2 currentPage-1 currentPage currentPage+1 currentPage+2 ... dernière
-                pages.push(1);
-                pages.push('...');
-                for (let i = currentPage - 2; i <= currentPage + 2; i++) {
-                    pages.push(i);
-                }
-                pages.push('...');
-                pages.push(totalPages);
-            }
-        }
-
-        return pages;
-    };
-
     if (loading) {
         return <div className="text-center p-10 text-lg">Chargement des CTFs...</div>;
     }
 
     return (
         <div className="container mx-auto py-10 px-4 space-y-8">
-            {/* Header */}
             <div className="space-y-2">
                 <h1 className="text-4xl font-extrabold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
                     Tous les CTFs
@@ -128,7 +83,6 @@ const AllCtfs = () => {
                 </p>
             </div>
 
-            {/* Recherche et Filtres */}
             <div className="flex gap-5 flex-wrap items-end">
                 <div className="w-80">
                     <Input
@@ -158,56 +112,47 @@ const AllCtfs = () => {
                     className="flex items-center gap-2"
                     size="sm"
                 >
-                    {sortBy === 'vues' ? <SortDesc size={14} /> : <SortAsc size={14} />}
-                    Vues
+                    {sortBy === 'vues' ? <SortDesc size={16} /> : <SortAsc size={16} />}
+                    Trier par vues
+                </Button>
+
+                <Button
+                    variant={sortBy === 'lieu' ? 'default' : 'outline'}
+                    onClick={() => setSortBy(sortBy === 'lieu' ? 'none' : 'lieu')}
+                    className="flex items-center gap-2"
+                    size="sm"
+                >
+                    {sortBy === 'lieu' ? <SortDesc size={16} /> : <SortAsc size={16} />}
+                    Trier par lieu
                 </Button>
             </div>
 
-            {/* Liste de CTFs */}
             <div className="space-y-4">
                 {paginatedCtfs.length > 0 ? (
                     paginatedCtfs.map(ctf => (
                         <Card key={ctf.id} className="border-2 border-primary/40 hover:border-primary/70 transition-all duration-300 hover:shadow-lg">
                             <CardHeader>
-                                <div className="flex justify-between items-start gap-4">
-                                    <div className="flex-1">
-                                        <CardTitle className="text-2xl mb-2">
-                                            {ctf.titre}
-                                        </CardTitle>
-                                        <p className="text-sm text-muted-foreground">
-                                            {ctf.description}
-                                        </p>
-                                    </div>
-                                    <span className="text-xs font-medium bg-primary/20 text-primary px-2.5 py-0.5 rounded-full flex-shrink-0">
-                                        Ouvert
-                                    </span>
-                                </div>
+                                <CardTitle className="text-2xl">{ctf.titre}</CardTitle>
                             </CardHeader>
-
                             <CardContent className="flex justify-between items-center">
-                                <div className="space-y-2 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-2">
-                                        <MapPin size={16} />
-                                        <span>{ctf.lieu}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Eye size={16} />
-                                        <span>{ctf.nbVues} vues</span>
+                                <div className="flex-1">
+                                    <p className="text-sm text-muted-foreground mb-4">
+                                        {ctf.description}
+                                    </p>
+                                    <div className="flex gap-6 text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-2">
+                                            <MapPin size={16} />
+                                            <span>{ctf.lieu}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Eye size={16} />
+                                            <span>{ctf.nbVues} vues</span>
+                                        </div>
                                     </div>
                                 </div>
-
-                                {ctf.organisateurPseudo && (
-                                    <p className="text-xs text-muted-foreground">
-                                        Organisé par <span className="font-semibold text-foreground">{ctf.organisateurPseudo}</span>
-                                    </p>
-                                )}
                             </CardContent>
-
-                            <CardFooter className="border-t border-border pt-4">
-                                <Button
-                                    className="ml-auto bg-primary hover:bg-primary/90"
-                                    onClick={() => navigate(`/ctf/${ctf.id}`)}
-                                >
+                            <CardFooter className="border-t border-border pt-4 flex justify-end">
+                                <Button onClick={() => navigate(`/ctf/${ctf.id}`)}>
                                     Voir les détails
                                 </Button>
                             </CardFooter>
@@ -222,45 +167,12 @@ const AllCtfs = () => {
                 )}
             </div>
 
-            {/* Pagination améliorée */}
             {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 pt-8">
-                    <Button
-                        variant="outline"
-                        onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
-                        disabled={currentPage === 1}
-                        size="sm"
-                    >
-                        <ChevronLeft size={16} />
-                    </Button>
-
-                    {getPageNumbers().map((pageNum, idx) => (
-                        pageNum === '...' ? (
-                            <span key={`ellipsis-${idx}`} className="px-2 text-muted-foreground">
-                                ...
-                            </span>
-                        ) : (
-                            <Button
-                                key={pageNum}
-                                variant={currentPage === pageNum ? "default" : "outline"}
-                                onClick={() => handlePageChange(pageNum)}
-                                size="sm"
-                                className="min-w-[40px]"
-                            >
-                                {pageNum}
-                            </Button>
-                        )
-                    ))}
-
-                    <Button
-                        variant="outline"
-                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                        size="sm"
-                    >
-                        <ChevronRight size={16} />
-                    </Button>
-                </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                />
             )}
         </div>
     );

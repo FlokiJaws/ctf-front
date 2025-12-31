@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, LogOut, User, ChevronDown, Sun, Moon } from "lucide-react";
+import { ShieldCheck, LogOut, User, ChevronDown, Sun, Moon, Trophy, Flag } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 
 const Navbar = ({theme, toggleTheme}) => {
@@ -28,10 +28,8 @@ const Navbar = ({theme, toggleTheme}) => {
             try {
                 const decoded = jwtDecode(token);
                 setUserPseudo(decoded.pseudo);
-                // groups peut être un tableau ou une chaîne
                 const role = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
                 setUserRole(role);
-                console.log('User Role détecté:', role, 'decoded.groups:', decoded.groups);
 
                 const currentTime = Date.now() / 1000;
                 if (decoded.exp && decoded.exp < currentTime) {
@@ -47,8 +45,7 @@ const Navbar = ({theme, toggleTheme}) => {
             setUserPseudo(null);
             setUserRole(null);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token]);
+    }, [token, navigate]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -75,12 +72,6 @@ const Navbar = ({theme, toggleTheme}) => {
                         <span>RootYou</span>
                     </Link>
 
-                    {/* Navigation selon le rôle */}
-                    {token && userRole && (
-                        <div className="flex items-center space-x-2">
-                        </div>
-                    )}
-
                     <div className="flex items-center space-x-4">
                         <Button variant="ghost" size="icon" onClick={toggleTheme}>
                             {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
@@ -100,30 +91,41 @@ const Navbar = ({theme, toggleTheme}) => {
                                 {showDropdown && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 z-50">
                                         <div className="py-1">
-                                            {userRole !== 'ADMINISTRATEUR' && (
-                                                <Link to="/profile" onClick={() => setShowDropdown(false)}>
+                                            {/* Profil - pour tous les utilisateurs */}
+                                            <Link to="/profile" onClick={() => setShowDropdown(false)}>
+                                                <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
+                                                    <User size={16} />
+                                                    <span>Profil</span>
+                                                </div>
+                                            </Link>
+
+                                            {/* CTFs - pour tous les utilisateurs */}
+                                            <Link to="/all-ctfs" onClick={() => setShowDropdown(false)}>
+                                                <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
+                                                    <Flag size={16} />
+                                                    <span>CTFs</span>
+                                                </div>
+                                            </Link>
+
+                                            {/* Leaderboard - pour tous les utilisateurs */}
+                                            <Link to="/leaderboard" onClick={() => setShowDropdown(false)}>
+                                                <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
+                                                    <Trophy size={16} />
+                                                    <span>Classement</span>
+                                                </div>
+                                            </Link>
+
+                                            {/* Dashboard Admin */}
+                                            {userRole === 'ADMINISTRATEUR' && (
+                                                <Link to="/admin/dashboard" onClick={() => setShowDropdown(false)}>
                                                     <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
-                                                        <User size={16} />
-                                                        <span>Profil</span>
+                                                        <ShieldCheck size={16} />
+                                                        <span>Dashboard</span>
                                                     </div>
                                                 </Link>
                                             )}
-                                            {userRole === 'ADMINISTRATEUR' && (
-                                                <>
-                                                    <Link to="/profile" onClick={() => setShowDropdown(false)}>
-                                                        <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
-                                                            <User size={16} />
-                                                            <span>Profil</span>
-                                                        </div>
-                                                    </Link>
-                                                    <Link to="/admin/dashboard" onClick={() => setShowDropdown(false)}>
-                                                        <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
-                                                            <ShieldCheck size={16} />
-                                                            <span>Dashboard</span>
-                                                        </div>
-                                                    </Link>
-                                                </>
-                                            )}
+
+                                            {/* Mes CTFs - Participant */}
                                             {userRole === 'PARTICIPANT' && (
                                                 <Link to="/my-ctfs" onClick={() => setShowDropdown(false)}>
                                                     <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
@@ -132,6 +134,8 @@ const Navbar = ({theme, toggleTheme}) => {
                                                     </div>
                                                 </Link>
                                             )}
+
+                                            {/* Mes CTFs - Organisateur */}
                                             {userRole === 'ORGANISATEUR' && (
                                                 <Link to="/organizer-ctfs" onClick={() => setShowDropdown(false)}>
                                                     <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
@@ -140,6 +144,8 @@ const Navbar = ({theme, toggleTheme}) => {
                                                     </div>
                                                 </Link>
                                             )}
+
+                                            {/* Déconnexion */}
                                             <div
                                                 className="px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer flex items-center space-x-2"
                                                 onClick={() => {

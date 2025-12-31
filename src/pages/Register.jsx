@@ -1,36 +1,26 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
-import FormField from "@/components/FormField.jsx";
-// imports des composants simple via shadcn-ui
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-// zod pour les vérifications d'input d'user
 import { z } from "zod";
+import FormField from "@/components/FormField.jsx";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 
-// composant parent
 const Register = () => {
     const navigate = useNavigate();
-
     const [pseudo, setPseudo] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
     const [fieldErrors, setFieldErrors] = useState({});
     const [serverError, setServerError] = useState('');
 
-    // gestionnaire de soumission du formulaire (onSubmit)
     const handleRegister = async (e) => {
         e.preventDefault();
         setFieldErrors({});
         setServerError('');
 
-        // pour le stockage des donnees de pseudo, email, password
         const formData = { pseudo, email, password };
 
-        //schema de toutes les erreurs d'user
         const registerSchema = z.object({
             pseudo: z.string().min(3, "Le pseudo doit faire au moins 3 caractères"),
             email: z.string().email("Format d'email invalide"),
@@ -48,7 +38,6 @@ const Register = () => {
             return;
         }
 
-        //lance la requete api pour l'inscription
         try {
             await axios.post('http://localhost:8080/auth/register/participant', formData);
             navigate('/login');
@@ -57,7 +46,6 @@ const Register = () => {
         }
     };
 
-    // rendu final qui utilise le composant enfant et qui display les erreurs si besoin
     return (
         <div className="flex items-center justify-center min-h-[80vh]">
             <Card className="w-full max-w-md">
