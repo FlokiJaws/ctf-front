@@ -5,7 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShieldAlert, Trophy, ArrowLeft, MapPin, Eye, Edit2, Trash2, X } from "lucide-react";
+import { ShieldAlert, Trophy, ArrowLeft, MapPin, Eye, Edit2, Trash2, X, Plus, Users } from "lucide-react";
 
 const OrganizerCtfs = () => {
     const navigate = useNavigate();
@@ -194,54 +194,59 @@ const OrganizerCtfs = () => {
                 </Button>
             </div>
 
-            {/* Barre de recherche et filtres */}
-            <div className="flex gap-4 flex-wrap items-center">
-                <Input
-                    placeholder="Rechercher..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-xs"
-                />
+            {/* Barre de recherche et filtres AVEC BOUTON + */}
+            <div className="flex gap-4 flex-wrap items-center justify-between">
+                <div className="flex gap-4 flex-wrap items-center">
+                    <Input
+                        placeholder="Rechercher..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="max-w-xs"
+                    />
 
-                <div className="flex gap-2">
-                    <Button
-                        variant={filterStatut === "ALL" ? "default" : "outline"}
-                        onClick={() => setFilterStatut("ALL")}
-                        size="sm"
-                    >
-                        Tous
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setFilterStatut("ACTIF")}
-                        size="sm"
-                        className={filterStatut === "ACTIF"
-                            ? "bg-green-500 text-white hover:bg-green-600 border-green-500"
-                            : "border-green-300 text-green-600 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20"}
-                    >
-                        Actif
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setFilterStatut("EN_ATTENTE")}
-                        size="sm"
-                        className={filterStatut === "EN_ATTENTE"
-                            ? "bg-yellow-500 text-white hover:bg-yellow-600 border-yellow-500"
-                            : "border-yellow-300 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/20"}
-                    >
-                        En attente
-                    </Button>
-                    <Button
-                        variant="outline"
-                        onClick={() => setFilterStatut("INACTIF")}
-                        size="sm"
-                        className={filterStatut === "INACTIF"
-                            ? "bg-red-500 text-white hover:bg-red-600 border-red-500"
-                            : "border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"}
-                    >
-                        Inactif
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button
+                            variant={filterStatut === "ALL" ? "default" : "outline"}
+                            onClick={() => setFilterStatut("ALL")}
+                            size="sm"
+                        >
+                            Tous
+                        </Button>
+                        <Button
+                            variant={filterStatut === "ACTIF" ? "default" : "outline"}
+                            onClick={() => setFilterStatut("ACTIF")}
+                            size="sm"
+                            className={filterStatut === "ACTIF" ? "" : "border-green-300 text-green-600 hover:bg-green-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20"}
+                        >
+                            Actif
+                        </Button>
+                        <Button
+                            variant={filterStatut === "EN_ATTENTE" ? "default" : "outline"}
+                            onClick={() => setFilterStatut("EN_ATTENTE")}
+                            size="sm"
+                            className={filterStatut === "EN_ATTENTE" ? "" : "border-yellow-300 text-yellow-600 hover:bg-yellow-50 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-900/20"}
+                        >
+                            En attente
+                        </Button>
+                        <Button
+                            variant={filterStatut === "INACTIF" ? "default" : "outline"}
+                            onClick={() => setFilterStatut("INACTIF")}
+                            size="sm"
+                            className={filterStatut === "INACTIF" ? "" : "border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"}
+                        >
+                            Inactif
+                        </Button>
+                    </div>
                 </div>
+
+                {/* BOUTON + POUR CRÉER UN CTF */}
+                <Button
+                    onClick={() => navigate("/organizer-ctfs/create")}
+                    className="flex items-center gap-2"
+                >
+                    <Plus size={20} />
+                    <span>Créer un CTF</span>
+                </Button>
             </div>
 
             <div className="space-y-4">
@@ -272,6 +277,10 @@ const OrganizerCtfs = () => {
                             </CardContent>
 
                             <CardFooter className="border-t border-border pt-4 flex justify-end gap-3">
+                                <Button variant="outline" onClick={() => navigate(`/organizer-ctfs/${ctf.id}/participants`)} className="flex items-center gap-2">
+                                    <Users size={16} />
+                                    Participants
+                                </Button>
                                 <Button variant="outline" onClick={() => handleEdit(ctf)} className="flex items-center gap-2">
                                     <Edit2 size={16} />
                                     Modifier
@@ -285,7 +294,11 @@ const OrganizerCtfs = () => {
                     ))
                 ) : (
                     <div className="text-center py-12">
-                        <p className="text-muted-foreground text-lg">Aucun CTF créé pour le moment.</p>
+                        <p className="text-muted-foreground text-lg mb-4">Aucun CTF créé pour le moment.</p>
+                        <Button onClick={() => navigate("/organizer-ctfs/create")} className="flex items-center gap-2 mx-auto">
+                            <Plus size={20} />
+                            <span>Créer votre premier CTF</span>
+                        </Button>
                     </div>
                 )}
             </div>

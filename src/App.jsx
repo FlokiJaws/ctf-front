@@ -9,6 +9,8 @@ import CtfDetails from './pages/CtfDetail';
 import Profile from './pages/Profile';
 import MyCtfs from './pages/MyCtfs';
 import OrganizerCtfs from './pages/OrganizerCtfs';
+import OrganizerCtfParticipants from './pages/OrganizerCtfParticipants';
+import CreateCtf from './pages/CreateCtf';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminCtfValidation from "@/pages/AdminCtfValidation.jsx";
 import AdminCtfDelete from "@/pages/AdminCtfDelete.jsx";
@@ -37,6 +39,8 @@ function App() {
                         <Route path="/profile" element={<Profile />} />
                         <Route path="/my-ctfs" element={<MyCtfs />} />
                         <Route path="/organizer-ctfs" element={<OrganizerCtfs />} />
+                        <Route path="/organizer-ctfs/create" element={<CreateCtf />} />
+                        <Route path="/organizer-ctfs/:id/participants" element={<OrganizerCtfParticipants />} />
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
                         <Route path="/ctf/:id" element={<CtfDetails />} />
                         <Route path="/all-ctfs" element={<AllCtfs />} />
