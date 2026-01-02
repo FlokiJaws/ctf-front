@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShieldAlert, User, Mail, Shield } from "lucide-react";
+import { ShieldAlert, User, Mail, Shield, Trophy, Flag } from "lucide-react";
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -102,6 +102,74 @@ const Profile = () => {
                         >
                             Retour à l'accueil
                         </Button>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Accès rapides selon le rôle */}
+            {userInfo && (
+                <Card className="border-border shadow-lg">
+                    <CardHeader>
+                        <CardTitle className="text-2xl">Accès rapides</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* Pour tous : Tous les CTFs */}
+                            <Button
+                                variant="outline"
+                                className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10"
+                                onClick={() => navigate('/all-ctfs')}
+                            >
+                                <Flag className="w-6 h-6 text-primary" />
+                                <span className="font-semibold">Tous les CTFs</span>
+                            </Button>
+
+                            {/* Pour tous : Classement */}
+                            <Button
+                                variant="outline"
+                                className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-primary/10"
+                                onClick={() => navigate('/leaderboard')}
+                            >
+                                <Trophy className="w-6 h-6 text-primary" />
+                                <span className="font-semibold">Classement</span>
+                            </Button>
+
+                            {/* PARTICIPANT : Mes CTFs */}
+                            {Array.isArray(userInfo.groups) && userInfo.groups.includes('PARTICIPANT') && (
+                                <Button
+                                    variant="outline"
+                                    className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                    onClick={() => navigate('/my-ctfs')}
+                                >
+                                    <ShieldAlert className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                    <span className="font-semibold">Mes CTFs</span>
+                                </Button>
+                            )}
+
+                            {/* ORGANISATEUR : Mes CTFs */}
+                            {Array.isArray(userInfo.groups) && userInfo.groups.includes('ORGANISATEUR') && (
+                                <Button
+                                    variant="outline"
+                                    className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                    onClick={() => navigate('/organizer-ctfs')}
+                                >
+                                    <ShieldAlert className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                    <span className="font-semibold">Mes CTFs</span>
+                                </Button>
+                            )}
+
+                            {/* ADMINISTRATEUR : Dashboard */}
+                            {Array.isArray(userInfo.groups) && userInfo.groups.includes('ADMINISTRATEUR') && (
+                                <Button
+                                    variant="outline"
+                                    className="h-20 flex flex-col items-center justify-center gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                                    onClick={() => navigate('/admin/dashboard')}
+                                >
+                                    <ShieldAlert className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                                    <span className="font-semibold">Dashboard Admin</span>
+                                </Button>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             )}
