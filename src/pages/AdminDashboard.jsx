@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import AdminCtfsManagement from "./AdminCtfsManagement";
 import AdminUsersManagement from "./AdminUsersManagement";
+import AdminParticipantsManagement from "./AdminParticipantsManagement";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    const [currentView, setCurrentView] = useState("ctfs"); // "ctfs" ou "users"
+    const [currentView, setCurrentView] = useState("ctfs"); // "ctfs", "users" ou "participants"
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -30,6 +31,19 @@ const AdminDashboard = () => {
             return;
         }
     }, [navigate]);
+
+    const renderContent = () => {
+        switch (currentView) {
+            case "ctfs":
+                return <AdminCtfsManagement />;
+            case "users":
+                return <AdminUsersManagement />;
+            case "participants":
+                return <AdminParticipantsManagement />;
+            default:
+                return <AdminCtfsManagement />;
+        }
+    };
 
     return (
         <div className="container mx-auto py-10 px-4 space-y-8">
@@ -53,6 +67,12 @@ const AdminDashboard = () => {
                             Gestion CTFs
                         </Button>
                         <Button
+                            variant={currentView === "participants" ? "default" : "outline"}
+                            onClick={() => setCurrentView("participants")}
+                        >
+                            Gestion Participants
+                        </Button>
+                        <Button
                             variant={currentView === "users" ? "default" : "outline"}
                             onClick={() => setCurrentView("users")}
                         >
@@ -63,7 +83,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* Contenu selon la vue */}
-            {currentView === "ctfs" ? <AdminCtfsManagement /> : <AdminUsersManagement />}
+            {renderContent()}
         </div>
     );
 };

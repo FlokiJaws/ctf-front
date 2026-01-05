@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import ParticipantsManagement from '../components/ParticipantsManagement';
 
-const OrganizerCtfParticipants = () => {
+const AdminCtfParticipants = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [ctf, setCtf] = useState(null);
@@ -24,7 +24,7 @@ const OrganizerCtfParticipants = () => {
             const decoded = jwtDecode(token);
             const role = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
 
-            if (role !== 'ORGANISATEUR') {
+            if (role !== 'ADMINISTRATEUR') {
                 navigate('/profile');
                 return;
             }
@@ -58,7 +58,7 @@ const OrganizerCtfParticipants = () => {
         return (
             <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
                 <p className="text-xl font-bold text-destructive">{error}</p>
-                <Button variant="outline" onClick={() => navigate('/organizer-ctfs')}>Retour</Button>
+                <Button variant="outline" onClick={() => navigate('/admin/dashboard')}>Retour</Button>
             </div>
         );
     }
@@ -68,11 +68,11 @@ const OrganizerCtfParticipants = () => {
             <div className="mb-8">
                 <Button
                     variant="ghost"
-                    onClick={() => navigate('/organizer-ctfs')}
+                    onClick={() => navigate('/admin/dashboard')}
                     className="mb-4"
                 >
                     <ArrowLeft className="mr-2" size={16} />
-                    Retour à mes CTFs
+                    Retour au Dashboard
                 </Button>
 
                 <div>
@@ -86,4 +86,4 @@ const OrganizerCtfParticipants = () => {
     );
 };
 
-export default OrganizerCtfParticipants;
+export default AdminCtfParticipants;

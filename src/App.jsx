@@ -15,7 +15,9 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminCtfValidation from "@/pages/AdminCtfValidation.jsx";
 import AdminCtfDelete from "@/pages/AdminCtfDelete.jsx";
 import AdminCtfEdit from "@/pages/AdminCtfEdit.jsx";
+import AdminCtfParticipants from './pages/AdminCtfParticipants';
 import Leaderboard from './pages/Leaderboard';
+
 
 function App() {
     const [theme, setTheme] = useState('dark');
@@ -48,6 +50,7 @@ function App() {
                         <Route path="/admin/ctf-validation" element={<AdminCtfValidation />} />
                         <Route path="/admin/ctf-delete" element={<AdminCtfDelete />} />
                         <Route path="/admin/ctf-edit" element={<AdminCtfEdit />} />
+                        <Route path="/admin/ctfs/:id/participants" element={<AdminCtfParticipants />} />
                     </Routes>
                 </main>
             </div>

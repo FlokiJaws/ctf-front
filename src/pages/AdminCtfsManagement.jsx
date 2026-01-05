@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapPin, Eye, Edit2, Trash2, CheckCircle, X } from "lucide-react";
+import { MapPin, Eye, Edit2, Trash2, CheckCircle, X, Users } from "lucide-react";
 import Pagination from "@/components/Pagination";
 
 const ITEMS_PER_PAGE = 10;
 
 const AdminCtfsManagement = () => {
+    const navigate = useNavigate();
     const [allCtfs, setAllCtfs] = useState([]);
     const [filteredCtfs, setFilteredCtfs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -238,6 +240,13 @@ const AdminCtfsManagement = () => {
                                         Valider
                                     </Button>
                                 )}
+                                <Button
+                                    variant="outline"
+                                    onClick={() => navigate(`/admin/ctfs/${ctf.id}/participants`)}
+                                >
+                                    <Users size={16} className="mr-2" />
+                                    Participants
+                                </Button>
                                 <Button variant="outline" onClick={() => handleEdit(ctf)}>
                                     <Edit2 size={16} className="mr-2" />
                                     Modifier
