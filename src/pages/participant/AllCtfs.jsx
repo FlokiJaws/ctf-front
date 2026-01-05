@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { MapPin, Eye, SortAsc, SortDesc } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import Pagination from "@/components/Pagination";
+import { Button } from "@/components/ui/button.jsx";
+import { Input } from "@/components/ui/input.jsx";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card.jsx";
+import Pagination from "@/components/common/Pagination.jsx";
 
 const ITEMS_PER_PAGE = 12;
 

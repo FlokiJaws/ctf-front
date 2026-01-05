@@ -1,6 +1,6 @@
 import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input.jsx";
+import { Label } from "@/components/ui/label.jsx";
 
 // compososant enfant réutilisable pour le parent pour gerer l'affichage des erreurs multiples
 const FormField = ({ label, type = "text", placeholder, value, onChange, error }) => {

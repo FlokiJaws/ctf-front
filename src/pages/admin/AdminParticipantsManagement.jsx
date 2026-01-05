@@ -1,5 +1,5 @@
 import React from 'react';
-import ParticipantsManagement from '../components/ParticipantsManagement';
+import ParticipantsManagement from '../../components/ctf/ParticipantsManagement.jsx';
 
 /**
  * Page admin : affiche tous les participants de tous les CTFs

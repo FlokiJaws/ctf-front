@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card.jsx";
+import { Button } from "@/components/ui/button.jsx";
 import { MapPin, Eye, Trophy, Flag, Sparkles } from "lucide-react";
 
 const CtfCard = ({ ctf, featured = false }) => {

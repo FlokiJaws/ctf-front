@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.jsx";
 import { ArrowLeft } from "lucide-react";
-import ParticipantsManagement from '../components/ParticipantsManagement';
+import ParticipantsManagement from '../../components/ctf/ParticipantsManagement.jsx';
 
 const OrganizerCtfParticipants = () => {
     const { id } = useParams();

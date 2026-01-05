@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button.jsx";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card.jsx";
 import { MapPin, Eye, Send, MessageSquare, ArrowLeft, LogIn, LogOut } from "lucide-react";
 
 const CtfDetail = () => {

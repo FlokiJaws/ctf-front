@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
+import { Button } from "@/components/ui/button.jsx";
 import { ShieldAlert, ArrowLeft, Trash2, AlertTriangle } from "lucide-react";
 
 const AdminCtfDelete = () => {

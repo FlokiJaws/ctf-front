@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Login from './pages/auth/Login.jsx';
+import Register from './pages/auth/Register.jsx';
 import Home from './pages/Home';
-import AllCtfs from './pages/AllCtfs';
-import Navbar from './components/Navbar';
-import CtfDetails from './pages/CtfDetail';
+import AllCtfs from './pages/participant/AllCtfs.jsx';
+import Navbar from './components/layout/Navbar.jsx';
+import CtfDetails from './pages/participant/CtfDetail.jsx';
 import Profile from './pages/Profile';
-import MyCtfs from './pages/MyCtfs';
-import OrganizerCtfs from './pages/OrganizerCtfs';
-import OrganizerCtfParticipants from './pages/OrganizerCtfParticipants';
-import CreateCtf from './pages/CreateCtf';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminCtfValidation from "@/pages/AdminCtfValidation.jsx";
-import AdminCtfDelete from "@/pages/AdminCtfDelete.jsx";
-import AdminCtfEdit from "@/pages/AdminCtfEdit.jsx";
-import AdminCtfParticipants from './pages/AdminCtfParticipants';
-import Leaderboard from './pages/Leaderboard';
+import MyCtfs from './pages/participant/MyCtfs.jsx';
+import OrganizerCtfs from './pages/organisateur/OrganizerCtfs.jsx';
+import OrganizerCtfParticipants from './pages/organisateur/OrganizerCtfParticipants.jsx';
+import CreateCtf from './pages/organisateur/CreateCtf.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import AdminCtfValidation from "@/pages/admin/AdminCtfValidation.jsx";
+import AdminCtfDelete from "@/pages/admin/AdminCtfDelete.jsx";
+import AdminCtfEdit from "@/pages/admin/AdminCtfEdit.jsx";
+import AdminCtfParticipants from './pages/admin/AdminCtfParticipants.jsx';
+import Leaderboard from './pages/participant/Leaderboard.jsx';
 
 
 function App() {

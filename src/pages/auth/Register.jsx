@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { z } from "zod";
-import FormField from "@/components/FormField.jsx";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import FormField from "@/components/common/FormField.jsx";
+import { Button } from "@/components/ui/button.jsx";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card.jsx";
 
 const Register = () => {
     const navigate = useNavigate();

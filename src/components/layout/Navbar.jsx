@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.jsx";
 import { ShieldCheck, LogOut, User, ChevronDown, Sun, Moon, Trophy, Flag } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 

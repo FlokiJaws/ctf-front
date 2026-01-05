@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import CtfCard from '@/components/CtfCard.jsx';
+import CtfCard from '@/components/ctf/CtfCard.jsx';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Trophy } from "lucide-react";
 

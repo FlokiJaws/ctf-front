@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button.jsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {

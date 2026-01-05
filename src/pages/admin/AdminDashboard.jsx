@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import AdminCtfsManagement from "./AdminCtfsManagement";
-import AdminUsersManagement from "./AdminUsersManagement";
-import AdminParticipantsManagement from "./AdminParticipantsManagement";
-import { Button } from "@/components/ui/button";
+import AdminCtfsManagement from "./AdminCtfsManagement.jsx";
+import AdminUsersManagement from "./AdminUsersManagement.jsx";
+import AdminParticipantsManagement from "./AdminParticipantsManagement.jsx";
+import { Button } from "@/components/ui/button.jsx";
 import { ArrowLeft } from "lucide-react";
 
 const AdminDashboard = () => {

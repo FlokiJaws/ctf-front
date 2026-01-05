@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card.jsx";
+import { Input } from "@/components/ui/input.jsx";
+import { Button } from "@/components/ui/button.jsx";
 import { Trophy, Medal, Award, Search, RefreshCw } from "lucide-react";
-import Pagination from "@/components/Pagination";
+import Pagination from "@/components/common/Pagination.jsx";
 
 const PARTICIPANTS_URL = "http://localhost:8080/users/getall/participants";
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes en millisecondes
