@@ -17,6 +17,9 @@ import AdminCtfDelete from "@/pages/admin/AdminCtfDelete.jsx";
 import AdminCtfEdit from "@/pages/admin/AdminCtfEdit.jsx";
 import AdminCtfParticipants from './pages/admin/AdminCtfParticipants.jsx';
 import Leaderboard from './pages/participant/Leaderboard.jsx';
+import MyTeam from './pages/participant/MyTeam.jsx';
+import CreateTeam from './pages/participant/CreateTeam.jsx';
+import AllTeams from './pages/participant/AllTeams.jsx';
 
 
 function App() {
@@ -51,6 +54,9 @@ function App() {
                         <Route path="/admin/ctf-delete" element={<AdminCtfDelete />} />
                         <Route path="/admin/ctf-edit" element={<AdminCtfEdit />} />
                         <Route path="/admin/ctfs/:id/participants" element={<AdminCtfParticipants />} />
+                        <Route path="/my-team" element={<MyTeam />} />
+                        <Route path="/team/create" element={<CreateTeam />} />
+                        <Route path="/all-teams" element={<AllTeams />} />
                     </Routes>
                 </main>
             </div>

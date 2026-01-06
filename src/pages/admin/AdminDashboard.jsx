@@ -67,12 +67,6 @@ const AdminDashboard = () => {
                             Gestion CTFs
                         </Button>
                         <Button
-                            variant={currentView === "participants" ? "default" : "outline"}
-                            onClick={() => setCurrentView("participants")}
-                        >
-                            Gestion Participants
-                        </Button>
-                        <Button
                             variant={currentView === "users" ? "default" : "outline"}
                             onClick={() => setCurrentView("users")}
                         >

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button.jsx";
-import { ShieldCheck, LogOut, User, ChevronDown, Sun, Moon, Trophy, Flag } from "lucide-react";
+import { ShieldCheck, LogOut, User, ChevronDown, Sun, Moon, Trophy, Flag, Users } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 
 const Navbar = ({theme, toggleTheme}) => {
@@ -131,6 +131,15 @@ const Navbar = ({theme, toggleTheme}) => {
                                                     <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
                                                         <ShieldCheck size={16} />
                                                         <span>Mes CTFs</span>
+                                                    </div>
+                                                </Link>
+                                            )}
+
+                                            {userRole === 'PARTICIPANT' && (
+                                                <Link to="/my-team" onClick={() => setShowDropdown(false)}>
+                                                    <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
+                                                        <Users size={16} />
+                                                        <span>Mon Équipe</span>
                                                     </div>
                                                 </Link>
                                             )}
