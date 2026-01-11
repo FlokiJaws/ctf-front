@@ -1,0 +1,553 @@
+\section{Architecture et Techniques du Frontend}
+
+Cette section présente l'architecture et les choix techniques du frontend de la plateforme CTF RootYou. Le frontend est construit avec React et suit une architecture modulaire orientée composants, privilégiant la réutilisabilité, la maintenabilité et l'expérience utilisateur.
+
+\subsection{Stack Technique}
+
+Le frontend utilise un ensemble de technologies modernes qui garantissent performance et expérience développeur optimale :
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=Technologies Principales]
+\begin{itemize}
+    \item \textbf{Framework UI} : React 19.2.0 avec hooks
+    \item \textbf{Build Tool} : Vite 7.2.4 (remplacement de Create React App)
+    \item \textbf{Routing} : React Router DOM 7.9.6
+    \item \textbf{Styling} : Tailwind CSS 3.4.17 avec système de design tokens
+    \item \textbf{Composants UI} : Radix UI (accessibilité native)
+    \item \textbf{Formulaires} : React Hook Form + Zod (validation par schéma)
+    \item \textbf{HTTP Client} : Axios 1.13.2
+    \item \textbf{Authentification} : JWT avec jwt-decode
+    \item \textbf{Icônes} : Lucide React
+\end{itemize}
+\end{tcolorbox}
+
+\subsubsection{Choix de Vite}
+
+Vite remplace les anciens bundlers comme Webpack grâce à ses performances supérieures. Il utilise les modules ES natifs en développement, permettant un démarrage instantané et un Hot Module Replacement ultra-rapide. En production, Vite utilise Rollup pour créer des bundles optimisés.
+
+\subsection{Organisation Architecturale}
+
+\subsubsection{Structure par Domaine Métier}
+
+Le code source est organisé selon une architecture modulaire qui sépare clairement les responsabilités :
+
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black,title=Organisation des Dossiers]
+\begin{description}
+    \item[pages/] Pages de l'application organisées par rôle utilisateur
+    \begin{itemize}
+        \item \texttt{auth/} : Connexion et inscription (2 pages)
+        \item \texttt{participant/} : Interface participant (10 pages)
+        \item \texttt{organisateur/} : Interface organisateur (3 pages)
+        \item \texttt{admin/} : Interface administrateur (9 pages)
+    \end{itemize}
+    \item[components/] Composants réutilisables
+    \begin{itemize}
+        \item \texttt{ui/} : Composants primitifs du design system (5 composants)
+        \item \texttt{common/} : Composants métier communs (FormField, Pagination, etc.)
+        \item \texttt{ctf/} : Composants spécifiques aux CTF
+        \item \texttt{layout/} : Composants de mise en page (Navbar)
+    \end{itemize}
+    \item[hooks/] Custom React Hooks (useAuth, useFormatDate)
+    \item[lib/] Utilitaires et helpers
+\end{description}
+\end{tcolorbox}
+
+Cette organisation permet une navigation intuitive dans le code et facilite la localisation des fonctionnalités.
+
+\subsubsection{Séparation des Responsabilités}
+
+L'architecture respecte le principe de séparation des préoccupations :
+
+\begin{itemize}
+    \item \textbf{Pages} : Gestion du state, appels API, logique métier
+    \item \textbf{Composants UI} : Présentation pure sans logique
+    \item \textbf{Hooks} : Logique réutilisable (authentification, formatage)
+    \item \textbf{Lib} : Fonctions utilitaires pures
+\end{itemize}
+
+\subsection{Système d'Authentification JWT}
+
+Le frontend implémente un système d'authentification stateless basé sur JWT qui communique avec le backend.
+
+\subsubsection{Hook useAuth}
+
+Le fichier \texttt{src/hooks/useAuth.js} expose un hook personnalisé qui centralise toute la logique d'authentification. Ce hook est utilisé dans chaque page protégée pour vérifier les permissions.
+
+\paragraph{Fonctionnalités}
+
+\begin{itemize}
+    \item \textbf{Récupération du token} : Lecture depuis localStorage
+    \item \textbf{Décodage JWT} : Extraction des claims (email, pseudo, rôle)
+    \item \textbf{Validation expiration} : Vérification du timestamp exp
+    \item \textbf{Contrôle d'accès} : Comparaison rôle vs allowedRoles
+    \item \textbf{Redirections automatiques} :
+    \begin{itemize}
+        \item Vers \texttt{/login} si non authentifié
+        \item Vers \texttt{/profile} si rôle non autorisé
+    \end{itemize}
+\end{itemize}
+
+\paragraph{Exemple d'utilisation}
+
+Chaque page protégée invoque useAuth avec les rôles autorisés. Le hook retourne null si l'utilisateur n'a pas les permissions, empêchant l'affichage de la page.
+
+\subsubsection{Flux d'Authentification}
+
+\begin{enumerate}
+    \item L'utilisateur soumet le formulaire de connexion (\texttt{pages/auth/Login.jsx})
+    \item Requête POST vers \texttt{/auth/login} avec credentials
+    \item Le backend retourne un JWT si les credentials sont valides
+    \item Le token est stocké dans localStorage
+    \item Redirection vers la page d'accueil appropriée au rôle
+    \item À chaque navigation, useAuth vérifie et décode le token
+    \item Le token est automatiquement ajouté dans le header Authorization de chaque requête Axios
+\end{enumerate}
+
+\subsubsection{Système de Rôles}
+
+L'application distingue trois types d'utilisateurs avec des interfaces dédiées :
+
+\begin{itemize}
+    \item \textbf{PARTICIPANT} : Inscription aux CTFs, gestion d'équipe, messagerie
+    \item \textbf{ORGANISATEUR} : Création de CTFs, gestion des participants
+    \item \textbf{ADMINISTRATEUR} : Validation des CTFs, modération, bannissement
+\end{itemize}
+
+La Navbar (\texttt{components/layout/Navbar.jsx}) adapte dynamiquement les liens de navigation selon le rôle de l'utilisateur connecté.
+
+\subsection{Système de Routing}
+
+\subsubsection{Configuration des Routes}
+
+Le fichier \texttt{src/App.jsx} configure l'ensemble des routes de l'application avec React Router DOM. L'application expose plus de 25 routes organisées par niveau d'accès.
+
+\paragraph{Routes Publiques}
+\begin{itemize}
+    \item \texttt{/} : Page d'accueil avec top 3 CTFs
+    \item \texttt{/login} : Authentification
+    \item \texttt{/register} : Inscription
+\end{itemize}
+
+\paragraph{Routes Participant}
+\begin{itemize}
+    \item \texttt{/my-ctfs} : CTFs auxquels le participant est inscrit
+    \item \texttt{/all-ctfs} : Liste complète des CTFs avec pagination
+    \item \texttt{/ctf/:id} : Détails d'un CTF
+    \item \texttt{/my-team} : Gestion de l'équipe
+    \item \texttt{/teams} : Liste de toutes les équipes
+    \item \texttt{/defis} : Liste des défis disponibles
+    \item \texttt{/leaderboard} : Classement des participants
+\end{itemize}
+
+\paragraph{Routes Organisateur}
+\begin{itemize}
+    \item \texttt{/organizer-ctfs} : Liste des CTFs créés
+    \item \texttt{/organizer-ctfs/create} : Formulaire de création de CTF
+    \item \texttt{/organizer-ctfs/:id/edit} : Modification d'un CTF
+\end{itemize}
+
+\paragraph{Routes Administrateur}
+\begin{itemize}
+    \item \texttt{/admin/dashboard} : Tableau de bord avec onglets
+    \item \texttt{/admin/ctf-validation} : Validation des CTFs en attente
+    \item \texttt{/admin/teams} : Modération des équipes
+    \item \texttt{/admin/users} : Gestion des utilisateurs
+    \item \texttt{/admin/user-requests} : Demandes d'inscription
+\end{itemize}
+
+\paragraph{Routes Partagées}
+\begin{itemize}
+    \item \texttt{/profile} : Profil utilisateur
+    \item \texttt{/messaging} : Liste des conversations
+    \item \texttt{/conversation/:id} : Thread de conversation
+\end{itemize}
+
+\subsubsection{Protection des Routes}
+
+Chaque page protégée utilise le hook useAuth pour vérifier les permissions. Cette approche décentralisée permet une granularité fine des contrôles d'accès sans composant HOC (Higher-Order Component) complexe.
+
+\subsection{Gestion des Formulaires}
+
+\subsubsection{React Hook Form + Zod}
+
+L'application utilise React Hook Form pour la gestion des formulaires, combiné avec Zod pour la validation par schéma. Cette combinaison offre plusieurs avantages :
+
+\begin{itemize}
+    \item \textbf{Performance} : Re-renders minimaux grâce aux références non contrôlées
+    \item \textbf{Validation déclarative} : Schémas Zod réutilisables et composables
+    \item \textbf{Type Safety} : Inférence de types TypeScript (si migration future)
+    \item \textbf{Gestion d'erreurs} : Messages d'erreur personnalisables
+    \item \textbf{Soumission simplifiée} : Gestion automatique de la soumission et des états
+\end{itemize}
+
+\subsubsection{Composant FormField}
+
+Le fichier \texttt{components/common/FormField.jsx} expose un composant wrapper qui standardise l'affichage des champs de formulaire. Il encapsule :
+
+\begin{itemize}
+    \item Label avec indicateur de champ requis
+    \item Input avec styling conditionnel (erreur en rouge)
+    \item Affichage des messages d'erreur (supporte tableau ou string)
+    \item Styling cohérent avec le design system
+\end{itemize}
+
+Ce composant garantit une expérience utilisateur homogène sur tous les formulaires.
+
+\subsection{Design System et Styling}
+
+\subsubsection{Approche Utility-First avec Tailwind CSS}
+
+L'application utilise Tailwind CSS selon l'approche utility-first, où le styling est appliqué directement via des classes utilitaires plutôt que des feuilles de style CSS personnalisées. Cette méthodologie offre plusieurs bénéfices :
+
+\begin{itemize}
+    \item \textbf{Cohérence} : Palette de couleurs et espacements définis globalement
+    \item \textbf{Rapidité} : Pas de changement de contexte entre HTML et CSS
+    \item \textbf{Maintenabilité} : Suppression d'un composant supprime automatiquement son CSS
+    \item \textbf{Performance} : PurgeCSS supprime les classes non utilisées en production
+    \item \textbf{Responsive} : Breakpoints conditionnels (sm:, md:, lg:)
+    \item \textbf{Mode sombre} : Classes conditionnelles (dark:)
+\end{itemize}
+
+\subsubsection{Système de Design Tokens}
+
+Le fichier \texttt{src/index.css} définit un ensemble de variables CSS (design tokens) qui constituent la fondation du système de design. Ces tokens utilisent le modèle de couleur HSL pour faciliter les variations.
+
+\paragraph{Tokens Principaux}
+
+\begin{itemize}
+    \item \textbf{--background} : Couleur de fond principale
+    \item \textbf{--foreground} : Couleur de texte principale
+    \item \textbf{--card} : Fond des cartes
+    \item \textbf{--primary} : Couleur primaire (boutons, liens)
+    \item \textbf{--secondary} : Couleur secondaire
+    \item \textbf{--destructive} : Actions destructrices (suppression, ban)
+    \item \textbf{--muted} : Texte atténué
+    \item \textbf{--border} : Bordures
+    \item \textbf{--input} : Champs de saisie
+\end{itemize}
+
+\paragraph{Mode Sombre}
+
+Le mode sombre est implémenté via la classe CSS \texttt{dark} appliquée à la balise \texttt{<html>}. Les tokens sont redéfinis dans le sélecteur \texttt{.dark} avec des valeurs adaptées. Le basculement est géré dans \texttt{App.jsx} et persiste grâce aux classes CSS.
+
+\subsubsection{Composants UI Basés sur Radix UI}
+
+Le dossier \texttt{components/ui/} contient des composants primitifs construits sur Radix UI, une bibliothèque de composants headless (sans style) qui garantit l'accessibilité. Ces composants constituent le design system de l'application.
+
+\paragraph{Button}
+
+Le composant Button utilise \texttt{class-variance-authority} (CVA) pour définir des variantes multiples :
+
+\begin{itemize}
+    \item \textbf{Variantes} : default, destructive, outline, secondary, ghost, link
+    \item \textbf{Tailles} : default, sm, lg, icon
+    \item \textbf{État disabled} : Styling automatique avec curseur non autorisé
+    \item \textbf{Support asChild} : Permet de rendre un élément enfant au lieu d'un button
+\end{itemize}
+
+\paragraph{Card}
+
+Le composant Card expose plusieurs sous-composants composables :
+
+\begin{itemize}
+    \item \texttt{Card} : Container principal
+    \item \texttt{CardHeader} : En-tête avec padding
+    \item \texttt{CardTitle} : Titre avec taille de police cohérente
+    \item \textbf{CardDescription} : Description atténuée
+    \item \texttt{CardContent} : Contenu principal
+    \item \texttt{CardFooter} : Pied avec actions
+\end{itemize}
+
+\paragraph{Input, Label, Textarea}
+
+Ces composants wrappent les éléments HTML natifs avec le styling du design system. Ils utilisent \texttt{React.forwardRef} pour permettre l'accès aux références DOM, essentiel pour React Hook Form.
+
+\subsubsection{Fonction cn()}
+
+Le fichier \texttt{lib/utils.js} expose la fonction \texttt{cn()} qui combine \texttt{clsx} et \texttt{tailwind-merge}. Cette fonction résout les conflits de classes Tailwind et permet de merger conditionnellement des classes.
+
+Cette fonction est utilisée dans tous les composants pour permettre le passage de classes personnalisées via les props tout en conservant les classes par défaut.
+
+\subsection{Communication avec le Backend}
+
+\subsubsection{Configuration Axios}
+
+Axios est configuré pour communiquer avec le backend sur \texttt{http://localhost:8080}. Un intercepteur ajoute automatiquement le header \texttt{Authorization} avec le token JWT récupéré depuis localStorage à chaque requête.
+
+\subsubsection{Gestion des Erreurs API}
+
+Les pages gèrent les erreurs API de manière cohérente :
+
+\begin{enumerate}
+    \item Appel API dans un bloc try/catch
+    \item Extraction du message d'erreur depuis \texttt{error.response.data.message}
+    \item Affichage du message dans l'interface (souvent en rouge)
+    \item Fallback sur un message générique si le backend ne retourne rien
+\end{enumerate}
+
+Cette approche garantit que les codes et messages d'erreur définis dans le backend (via ApiException) sont correctement affichés à l'utilisateur.
+
+\subsection{Composants Métier Principaux}
+
+\subsubsection{Navbar}
+
+Le fichier \texttt{components/layout/Navbar.jsx} implémente la barre de navigation principale qui s'adapte au rôle de l'utilisateur. Il s'agit d'un composant complexe qui combine plusieurs fonctionnalités :
+
+\begin{itemize}
+    \item \textbf{Navigation conditionnelle} : Les liens affichés dépendent du rôle (PARTICIPANT, ORGANISATEUR, ADMINISTRATEUR)
+    \item \textbf{Profil utilisateur} : Menu dropdown avec informations et déconnexion
+    \item \textbf{Toggle thème} : Basculement dark/light avec persistance
+    \item \textbf{Indicateur messages} : Badge avec nombre de conversations non lues
+    \item \textbf{Dialog de confirmation} : Confirmation avant déconnexion
+    \item \textbf{Responsive} : Menu hamburger sur mobile
+\end{itemize}
+
+Le composant vérifie la présence du token JWT pour afficher ou masquer les éléments d'authentification.
+
+\subsubsection{CtfCard}
+
+Le fichier \texttt{components/ctf/CtfCard.jsx} affiche une carte de CTF avec toutes les informations importantes. Le composant supporte un mode "featured" pour mettre en avant les CTFs populaires avec un gradient et une animation au survol.
+
+Les informations affichées incluent : titre, description, difficulté, catégorie, nombre de participants, date de création. Un clic sur la carte navigue vers la page de détails du CTF.
+
+\subsubsection{Pagination}
+
+Le composant \texttt{components/common/Pagination.jsx} implémente une pagination intelligente qui affiche au maximum 5 numéros de page avec des ellipses pour les grands ensembles de données. Il expose des boutons Précédent/Suivant avec désactivation automatique aux limites.
+
+\subsubsection{StatusBadge}
+
+Le composant \texttt{components/common/StatusBadge.jsx} affiche un badge de statut avec trois états possibles (ACTIF, EN\_ATTENTE, INACTIF) et des couleurs conditionnelles (vert, jaune, rouge). Il est utilisé pour afficher le statut des CTFs et des équipes.
+
+\subsubsection{ConfirmDialog}
+
+Le composant \texttt{components/common/ConfirmDialog.jsx} affiche une boîte de dialogue modale de confirmation pour les actions destructrices (suppression, exclusion, bannissement). Il assure que l'utilisateur confirme explicitement avant l'exécution de l'action.
+
+\subsection{Pages Principales}
+
+\subsubsection{Home}
+
+La page d'accueil (\texttt{pages/Home.jsx}) affiche les 3 CTFs les plus populaires (triés par nombre de vues) dans une grille responsive. Elle sert de landing page et encourage les visiteurs à explorer la plateforme.
+
+\subsubsection{Login et Register}
+
+Les pages d'authentification (\texttt{pages/auth/Login.jsx} et \texttt{Register.jsx}) implémentent les formulaires de connexion et d'inscription avec validation côté client. Elles gèrent les erreurs backend et stockent le token JWT après succès.
+
+\subsubsection{CtfDetail}
+
+La page de détails d'un CTF (\texttt{pages/participant/CtfDetail.jsx}) est l'une des pages les plus complexes. Elle affiche toutes les informations d'un CTF et permet plusieurs actions :
+
+\begin{itemize}
+    \item \textbf{Inscription} : Bouton "Rejoindre" avec confirmation
+    \item \textbf{Désinscription} : Bouton "Quitter" avec confirmation
+    \item \textbf{Complétion} : Marquage comme terminé
+    \item \textbf{Commentaires} : Section avec liste et formulaire d'ajout
+    \item \textbf{Défis} : Liste des défis du CTF
+    \item \textbf{Statut} : Badge indiquant l'état de participation (none, active, completed, left)
+\end{itemize}
+
+La page détecte automatiquement le statut de participation de l'utilisateur et adapte l'interface en conséquence.
+
+\subsubsection{AllCtfs}
+
+La page de liste des CTFs (\texttt{pages/participant/AllCtfs.jsx}) affiche tous les CTFs disponibles avec pagination côté client. Elle implémente des filtres de recherche et de tri pour faciliter la navigation.
+
+\subsubsection{MyTeam}
+
+La page de gestion d'équipe (\texttt{pages/participant/MyTeam.jsx}) permet à un participant de gérer son équipe. Les fonctionnalités varient selon que l'utilisateur est chef d'équipe ou simple membre :
+
+\begin{itemize}
+    \item \textbf{Chef d'équipe} : Accepter/refuser les candidatures, exclure des membres, modifier les informations de l'équipe
+    \item \textbf{Membre} : Voir les informations, quitter l'équipe
+    \item \textbf{Sans équipe} : Créer une équipe, candidater à une équipe existante
+\end{itemize}
+
+\subsubsection{AdminDashboard}
+
+Le tableau de bord administrateur (\texttt{pages/admin/AdminDashboard.jsx}) organise l'interface en onglets pour faciliter la navigation entre les différentes sections de modération. Il vérifie le rôle ADMINISTRATEUR et redirige les utilisateurs non autorisés.
+
+\subsubsection{CreateCtf}
+
+La page de création de CTF (\texttt{pages/organisateur/CreateCtf.jsx}) expose un formulaire complexe avec validation Zod. Elle permet à un organisateur de soumettre un CTF pour validation par les administrateurs. Les champs incluent : titre, description, difficulté, catégorie, récompenses, et image.
+
+\subsubsection{Messaging et Conversation}
+
+Les pages de messagerie (\texttt{pages/Messaging.jsx} et \texttt{Conversation.jsx}) implémentent un système de conversation entre utilisateurs. La première affiche la liste des conversations avec indicateur de messages non lus. La seconde affiche le thread complet avec possibilité d'envoyer de nouveaux messages.
+
+\subsection{Optimisations et Bonnes Pratiques}
+
+\subsubsection{Vite avec Hot Module Replacement}
+
+Vite offre un HMR ultra-rapide qui permet de voir les changements instantanément sans rafraîchissement complet de la page. Cela améliore drastiquement l'expérience développeur et la productivité.
+
+\subsubsection{Lazy Loading et Code Splitting}
+
+Bien que non implémenté dans la version actuelle, l'architecture permet facilement l'ajout de lazy loading avec \texttt{React.lazy()} et \texttt{Suspense} pour charger les pages à la demande et réduire la taille du bundle initial.
+
+\subsubsection{Composants React.forwardRef}
+
+Tous les composants UI utilisent \texttt{React.forwardRef} pour permettre l'accès aux références DOM. Cela permet l'intégration avec des bibliothèques tierces (React Hook Form, focus management) et améliore la réutilisabilité.
+
+\subsubsection{Protection contre les Re-renders Infinis}
+
+Le hook useAuth utilise \texttt{useRef} pour éviter les boucles infinies de re-renders lors des redirections. Cette approche garantit que les effets ne se déclenchent qu'une seule fois même si les dépendances changent.
+
+\subsection{Récapitulatif de l'Organisation des Fichiers}
+
+\subsubsection{Configuration}
+
+\begin{description}
+    \item[vite.config.js] Configuration du build tool avec plugin React et alias de chemin
+    \item[tailwind.config.js] Configuration Tailwind avec tokens, mode sombre et animations
+    \item[jsconfig.json] Mapping des chemins pour l'alias @ et autocomplétion IDE
+    \item[package.json] Dépendances et scripts de build/dev
+\end{description}
+
+\subsubsection{Points d'Entrée}
+
+\begin{description}
+    \item[index.html] Template HTML avec div racine
+    \item[src/main.jsx] Bootstrap React avec StrictMode
+    \item[src/App.jsx] Configuration des routes et thème
+    \item[src/index.css] Styles globaux Tailwind et design tokens
+\end{description}
+
+\subsubsection{Hooks}
+
+\begin{description}
+    \item[hooks/useAuth.js] Authentification JWT et contrôle d'accès basé sur les rôles
+    \item[hooks/useFormatDate.js] Formatage des dates en français avec Intl.DateTimeFormat
+\end{description}
+
+\subsubsection{Utilitaires}
+
+\begin{description}
+    \item[lib/utils.js] Fonction cn() pour merge de classes Tailwind avec résolution de conflits
+\end{description}
+
+\subsubsection{Composants UI (Design System)}
+
+\begin{description}
+    \item[ui/button.jsx] Bouton avec variantes (default, destructive, outline, etc.) et tailles
+    \item[ui/card.jsx] Système de cartes composables (Card, CardHeader, CardContent, etc.)
+    \item[ui/input.jsx] Input stylisé avec support mode sombre
+    \item[ui/label.jsx] Label accessible basé sur Radix UI
+    \item[ui/textarea.jsx] Textarea stylisé avec support mode sombre
+\end{description}
+
+\subsubsection{Composants Communs}
+
+\begin{description}
+    \item[common/FormField.jsx] Wrapper Input+Label avec gestion d'erreurs standardisée
+    \item[common/Pagination.jsx] Pagination intelligente avec ellipses et navigation
+    \item[common/StatusBadge.jsx] Badge de statut avec couleurs conditionnelles
+    \item[common/ConfirmDialog.jsx] Dialog de confirmation pour actions destructrices
+\end{description}
+
+\subsubsection{Composants CTF}
+
+\begin{description}
+    \item[ctf/CtfCard.jsx] Carte d'affichage CTF avec mode featured et navigation
+    \item[ctf/ParticipantsManagement.jsx] Gestion des participants d'un CTF avec pagination
+\end{description}
+
+\subsubsection{Layout}
+
+\begin{description}
+    \item[layout/Navbar.jsx] Barre de navigation adaptative avec profil, toggle thème, et messages
+\end{description}
+
+\subsubsection{Pages Publiques}
+
+\begin{description}
+    \item[Home.jsx] Landing page avec top 3 CTFs populaires
+    \item[auth/Login.jsx] Formulaire de connexion avec gestion erreurs
+    \item[auth/Register.jsx] Formulaire d'inscription avec validation
+\end{description}
+
+\subsubsection{Pages Participant (10 pages)}
+
+\begin{description}
+    \item[participant/AllCtfs.jsx] Liste paginée de tous les CTFs avec filtres
+    \item[participant/CtfDetail.jsx] Détails CTF avec commentaires et défis
+    \item[participant/MyCtfs.jsx] CTFs auxquels le participant est inscrit
+    \item[participant/MyTeam.jsx] Gestion d'équipe avec candidatures
+    \item[participant/Teams.jsx] Liste de toutes les équipes
+    \item[participant/TeamDetail.jsx] Détails d'une équipe
+    \item[participant/Defis.jsx] Liste des défis disponibles
+    \item[participant/DefisDetail.jsx] Détails d'un défi
+    \item[participant/Leaderboard.jsx] Classement des participants
+    \item[participant/Profile.jsx] Profil utilisateur
+\end{description}
+
+\subsubsection{Pages Organisateur (3 pages)}
+
+\begin{description}
+    \item[organisateur/OrganizerCtfs.jsx] Liste des CTFs créés par l'organisateur
+    \item[organisateur/CreateCtf.jsx] Formulaire de création de CTF
+    \item[organisateur/EditCtf.jsx] Modification d'un CTF existant
+\end{description}
+
+\subsubsection{Pages Administrateur (9 pages)}
+
+\begin{description}
+    \item[admin/AdminDashboard.jsx] Tableau de bord avec onglets
+    \item[admin/AdminCtfsManagement.jsx] Gestion complète des CTFs
+    \item[admin/AdminCtfValidation.jsx] Validation des CTFs en attente
+    \item[admin/AdminTeams.jsx] Modération des équipes
+    \item[admin/AdminUsers.jsx] Gestion des utilisateurs
+    \item[admin/AdminUserRequests.jsx] Validation des demandes d'inscription
+    \item[admin/AdminParticipants.jsx] Gestion des participants
+    \item[admin/AdminOrganizers.jsx] Gestion des organisateurs
+    \item[admin/AdminStats.jsx] Statistiques de la plateforme
+\end{description}
+
+\subsubsection{Pages Partagées}
+
+\begin{description}
+    \item[Messaging.jsx] Liste des conversations avec indicateur non lus
+    \item[Conversation.jsx] Thread de conversation avec envoi de messages
+    \item[Profile.jsx] Profil utilisateur avec édition
+\end{description}
+
+\subsection{Conclusion Frontend}
+
+Le frontend de la plateforme CTF RootYou présente une architecture React moderne et maintenable qui privilégie l'expérience utilisateur et la productivité développeur.
+
+\subsubsection{Points Forts Techniques}
+
+\begin{itemize}
+    \item \textbf{Performance} : Vite avec HMR instantané, bundles optimisés en production
+    \item \textbf{Expérience utilisateur} : Interface responsive, mode sombre, navigation intuitive
+    \item \textbf{Sécurité} : Authentification JWT, contrôle d'accès granulaire, gestion des erreurs
+    \item \textbf{Accessibilité} : Composants Radix UI avec support ARIA natif
+    \item \textbf{Maintenabilité} : Architecture modulaire, composants réutilisables, design system
+    \item \textbf{Qualité du code} : Validation de formulaires, gestion d'état cohérente, séparation des responsabilités
+\end{itemize}
+
+\subsubsection{Cohérence avec le Backend}
+
+Le frontend communique de manière cohérente avec le backend documenté précédemment :
+
+\begin{itemize}
+    \item \textbf{JWT} : Même système d'authentification avec décodage des claims
+    \item \textbf{Rôles} : Correspondance exacte (PARTICIPANT, ORGANISATEUR, ADMINISTRATEUR)
+    \item \textbf{Gestion d'erreurs} : Affichage des codes et messages ApiException
+    \item \textbf{Soft delete} : Affichage des statuts de candidature et participation
+    \item \textbf{Permissions} : Respect des règles de contact et d'accès définies côté serveur
+\end{itemize}
+
+\subsubsection{Évolutions Futures Frontend}
+
+L'architecture actuelle permet d'envisager plusieurs améliorations :
+
+\begin{itemize}
+    \item \textbf{WebSockets} : Messagerie et notifications en temps réel
+    \item \textbf{Progressive Web App} : Support offline et installation
+    \item \textbf{Optimisations} : Lazy loading, code splitting par route, image optimization
+    \item \textbf{Tests} : Jest + React Testing Library pour tests unitaires et intégration
+    \item \textbf{TypeScript} : Migration pour type safety complète
+    \item \textbf{Internationalisation} : Support multi-langues avec i18next
+    \item \textbf{Analytics} : Tracking des événements utilisateur
+    \item \textbf{Finalisation participation équipe} : Compléter la fonctionnalité côté frontend
+\end{itemize}
+
+La combinaison du backend Java EE/Quarkus et du frontend React constitue une stack technique solide et professionnelle pour une plateforme CTF moderne.
