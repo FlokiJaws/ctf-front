@@ -1,12 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
-/**
- * Hook pour gérer l'authentification et les autorisations
- * @param {string[]} allowedRoles - Rôles autorisés (null = tous les rôles connectés)
- * @returns {{ token, userInfo, userRole, userEmail, isLoading }}
- */
 export const useAuth = (allowedRoles = null) => {
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
@@ -16,6 +11,15 @@ export const useAuth = (allowedRoles = null) => {
         userRole: null,
         userEmail: null
     });
+
+    // Utiliser useRef pour eviter les re-renders infini
+    const allowedRolesRef = useRef(allowedRoles);
+
+    // Mettre à jour la ref seulement si les valeurs changent réellement
+    const rolesChanged = JSON.stringify(allowedRoles) !== JSON.stringify(allowedRolesRef.current);
+    if (rolesChanged) {
+        allowedRolesRef.current = allowedRoles;
+    }
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -36,8 +40,9 @@ export const useAuth = (allowedRoles = null) => {
             }
 
             const userRole = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
+            const currentAllowedRoles = allowedRolesRef.current;
 
-            if (allowedRoles && !allowedRoles.includes(userRole)) {
+            if (currentAllowedRoles && !currentAllowedRoles.includes(userRole)) {
                 navigate('/profile');
                 return;
             }
@@ -55,7 +60,7 @@ export const useAuth = (allowedRoles = null) => {
         } finally {
             setIsLoading(false);
         }
-    }, [navigate, allowedRoles]);
+    }, [navigate]);
 
     return { ...authData, isLoading };
 };
