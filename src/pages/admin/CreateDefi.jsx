@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
@@ -9,42 +9,13 @@ import { ArrowLeft, Target, Award, Plus, AlertCircle, CheckCircle } from "lucide
 
 const CreateDefi = () => {
     const navigate = useNavigate();
-    const token = localStorage.getItem("token");
+    const { token, isLoading } = useAuth(['ADMINISTRATEUR']);
 
     const [titre, setTitre] = useState('');
     const [points, setPoints] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-
-    useEffect(() => {
-        if (!token) {
-            navigate("/login");
-            return;
-        }
-
-        try {
-            const decoded = jwtDecode(token);
-            const currentTime = Date.now() / 1000;
-            if (decoded.exp && decoded.exp < currentTime) {
-                localStorage.removeItem("token");
-                navigate("/login");
-                return;
-            }
-
-            const role = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
-
-            // Seuls les admins peuvent créer des défis
-            if (role !== 'ADMINISTRATEUR') {
-                navigate('/defis');
-                return;
-            }
-        } catch (e) {
-            localStorage.removeItem("token");
-            navigate("/login");
-            return;
-        }
-    }, [token, navigate]);
 
     const getDifficultyPreview = (pts) => {
         const p = parseInt(pts) || 0;
@@ -68,7 +39,6 @@ const CreateDefi = () => {
         setError('');
         setSuccess(false);
 
-        // Validation
         if (!titre.trim()) {
             setError('Le titre est obligatoire');
             return;
@@ -84,10 +54,7 @@ const CreateDefi = () => {
         try {
             await axios.post(
                 'http://localhost:8080/defis/create',
-                {
-                    titre: titre.trim(),
-                    points: parseInt(points)
-                },
+                { titre: titre.trim(), points: parseInt(points) },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
@@ -95,10 +62,7 @@ const CreateDefi = () => {
             setTitre('');
             setPoints('');
 
-            // Rediriger après 2 secondes
-            setTimeout(() => {
-                navigate('/defis');
-            }, 2000);
+            setTimeout(() => navigate('/defis'), 2000);
         } catch (err) {
             console.error('Erreur création défi:', err);
             setError(err.response?.data?.message || 'Erreur lors de la création du défi');
@@ -107,18 +71,20 @@ const CreateDefi = () => {
         }
     };
 
+    if (isLoading) {
+        return <div className="text-center p-10 text-lg">Chargement...</div>;
+    }
+
     const difficulty = getDifficultyPreview(points);
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-2xl">
             <div className="space-y-6">
-                {/* Bouton retour */}
                 <Button variant="outline" onClick={() => navigate('/defis')} className="flex items-center gap-2">
                     <ArrowLeft size={18} />
                     Retour aux défis
                 </Button>
 
-                {/* Formulaire */}
                 <Card className="border-2 border-primary/40">
                     <CardHeader>
                         <div className="flex items-center gap-3">
@@ -136,7 +102,6 @@ const CreateDefi = () => {
 
                     <CardContent>
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Message d'erreur */}
                             {error && (
                                 <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-lg">
                                     <AlertCircle size={20} />
@@ -144,7 +109,6 @@ const CreateDefi = () => {
                                 </div>
                             )}
 
-                            {/* Message de succès */}
                             {success && (
                                 <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 rounded-lg">
                                     <CheckCircle size={20} />
@@ -152,7 +116,6 @@ const CreateDefi = () => {
                                 </div>
                             )}
 
-                            {/* Titre */}
                             <div className="space-y-2">
                                 <label htmlFor="titre" className="text-sm font-medium">
                                     Titre du défi <span className="text-red-500">*</span>
@@ -171,7 +134,6 @@ const CreateDefi = () => {
                                 </p>
                             </div>
 
-                            {/* Points */}
                             <div className="space-y-2">
                                 <label htmlFor="points" className="text-sm font-medium">
                                     Points <span className="text-red-500">*</span>
@@ -199,7 +161,6 @@ const CreateDefi = () => {
                                 </p>
                             </div>
 
-                            {/* Aperçu */}
                             {titre && points && parseInt(points) > 0 && (
                                 <div className="p-4 bg-secondary/30 rounded-lg space-y-3">
                                     <p className="text-sm font-medium text-muted-foreground">Aperçu</p>
@@ -218,7 +179,6 @@ const CreateDefi = () => {
                                 </div>
                             )}
 
-                            {/* Bouton submit */}
                             <Button
                                 type="submit"
                                 disabled={loading || success || !titre.trim() || !points}

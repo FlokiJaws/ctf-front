@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { ArrowLeft, Target, Award, Star, Trophy, Calendar, User } from "lucide-react";
@@ -9,42 +9,17 @@ import { ArrowLeft, Target, Award, Star, Trophy, Calendar, User } from "lucide-r
 const DefiDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const token = localStorage.getItem("token");
+    const { token, isLoading: authLoading } = useAuth(['PARTICIPANT', 'ADMINISTRATEUR']);
 
     const [defi, setDefi] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (!token) {
-            navigate("/login");
-            return;
+        if (!authLoading && token) {
+            fetchDefi();
         }
-
-        try {
-            const decoded = jwtDecode(token);
-            const currentTime = Date.now() / 1000;
-            if (decoded.exp && decoded.exp < currentTime) {
-                localStorage.removeItem("token");
-                navigate("/login");
-                return;
-            }
-
-            const role = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
-
-            // Seuls les participants et admins peuvent voir les défis
-            if (role !== 'PARTICIPANT' && role !== 'ADMINISTRATEUR') {
-                navigate('/profile');
-                return;
-            }
-        } catch (e) {
-            localStorage.removeItem("token");
-            navigate("/login");
-            return;
-        }
-
-        fetchDefi();
-    }, [token, navigate, id]);
+    }, [token, authLoading, id]);
 
     const fetchDefi = async () => {
         setLoading(true);
@@ -77,7 +52,7 @@ const DefiDetail = () => {
         return { label: 'Facile', color: 'bg-green-500/20 text-green-600 dark:text-green-400' };
     };
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
                 <div className="text-center">
@@ -111,15 +86,12 @@ const DefiDetail = () => {
     return (
         <div className="container mx-auto py-10 px-4 max-w-4xl">
             <div className="space-y-6">
-                {/* Bouton retour */}
                 <Button variant="outline" onClick={() => navigate('/defis')} className="flex items-center gap-2">
                     <ArrowLeft size={18} />
                     Retour aux défis
                 </Button>
 
-                {/* Carte principale */}
                 <Card className="border-2 border-primary/40 overflow-hidden">
-                    {/* Header avec gradient */}
                     <div className="bg-gradient-to-r from-primary/20 to-blue-500/20 p-6">
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-4">
@@ -137,7 +109,6 @@ const DefiDetail = () => {
                     </div>
 
                     <CardContent className="p-6 space-y-6">
-                        {/* Points */}
                         <div className="flex items-center justify-center p-6 bg-secondary/30 rounded-xl">
                             <div className="text-center">
                                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -148,7 +119,6 @@ const DefiDetail = () => {
                                 </div>
                                 <p className="text-muted-foreground">Points à gagner</p>
 
-                                {/* Étoiles */}
                                 <div className="mt-3 flex items-center justify-center gap-1">
                                     {[...Array(5)].map((_, i) => (
                                         <Star
@@ -164,7 +134,6 @@ const DefiDetail = () => {
                             </div>
                         </div>
 
-                        {/* Description si disponible */}
                         {defi.description && (
                             <div className="space-y-2">
                                 <h3 className="text-lg font-semibold">Description</h3>
@@ -174,7 +143,6 @@ const DefiDetail = () => {
                             </div>
                         )}
 
-                        {/* Informations supplémentaires */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
                             {defi.createdAt && (
                                 <div className="flex items-center gap-3 p-4 bg-secondary/30 rounded-lg">
@@ -203,7 +171,6 @@ const DefiDetail = () => {
                             )}
                         </div>
 
-                        {/* Nombre de participants si disponible */}
                         {defi.participantsCount !== undefined && (
                             <div className="flex items-center gap-3 p-4 bg-primary/10 rounded-lg">
                                 <Trophy className="w-6 h-6 text-primary" />

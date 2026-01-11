@@ -2,17 +2,6 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-/**
- * Composant réutilisable pour les dialogs de confirmation
- * @param {boolean} show - Afficher ou non le dialog
- * @param {string} title - Titre du dialog
- * @param {string} message - Message du dialog
- * @param {function} onConfirm - Fonction à exécuter lors de la confirmation
- * @param {function} onCancel - Fonction à exécuter lors de l'annulation
- * @param {string} confirmLabel - Label du bouton de confirmation (défaut: "Confirmer")
- * @param {string} cancelLabel - Label du bouton d'annulation (défaut: "Annuler")
- * @param {string} confirmVariant - Variant du bouton de confirmation (défaut: "default")
- */
 const ConfirmDialog = ({
                            show,
                            title,

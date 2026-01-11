@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
@@ -13,8 +13,7 @@ const ITEMS_PER_PAGE = 12;
 
 const AllDefis = () => {
     const navigate = useNavigate();
-    const token = localStorage.getItem("token");
-    const [userRole, setUserRole] = useState(null);
+    const { token, userRole, isLoading } = useAuth(['PARTICIPANT', 'ADMINISTRATEUR']);
 
     const [allDefis, setAllDefis] = useState([]);
     const [filteredDefis, setFilteredDefis] = useState([]);
@@ -25,36 +24,10 @@ const AllDefis = () => {
     const [sortBy, setSortBy] = useState('none');
 
     useEffect(() => {
-        if (!token) {
-            navigate("/login");
-            return;
+        if (!isLoading && token) {
+            fetchDefis();
         }
-
-        try {
-            const decoded = jwtDecode(token);
-            const currentTime = Date.now() / 1000;
-            if (decoded.exp && decoded.exp < currentTime) {
-                localStorage.removeItem("token");
-                navigate("/login");
-                return;
-            }
-
-            const role = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
-            setUserRole(role);
-
-            // Seuls les participants et admins peuvent voir les défis
-            if (role !== 'PARTICIPANT' && role !== 'ADMINISTRATEUR') {
-                navigate('/profile');
-                return;
-            }
-        } catch (e) {
-            localStorage.removeItem("token");
-            navigate("/login");
-            return;
-        }
-
-        fetchDefis();
-    }, [token, navigate]);
+    }, [token, isLoading]);
 
     useEffect(() => {
         applyFilters();
@@ -81,7 +54,6 @@ const AllDefis = () => {
     const applyFilters = () => {
         let filtered = [...allDefis];
 
-        // Filtre par recherche
         if (searchTerm) {
             const search = searchTerm.toLowerCase();
             filtered = filtered.filter(defi =>
@@ -89,7 +61,6 @@ const AllDefis = () => {
             );
         }
 
-        // Tri
         if (sortBy === 'points-asc') {
             filtered.sort((a, b) => a.points - b.points);
         } else if (sortBy === 'points-desc') {
@@ -127,14 +98,13 @@ const AllDefis = () => {
         return { label: 'Facile', color: 'bg-green-500/20 text-green-600 dark:text-green-400' };
     };
 
-    if (loading) {
+    if (isLoading || loading) {
         return <div className="text-center p-10 text-lg">Chargement des défis...</div>;
     }
 
     return (
         <div className="container mx-auto py-10 px-4 max-w-7xl">
             <div className="space-y-8">
-                {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-4xl font-extrabold bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent flex items-center gap-3">
@@ -159,14 +129,12 @@ const AllDefis = () => {
                     </div>
                 </div>
 
-                {/* Message d'erreur */}
                 {error && (
                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg">
                         {error}
                     </div>
                 )}
 
-                {/* Filtres et recherche */}
                 <div className="flex gap-4 flex-wrap items-center">
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
@@ -205,7 +173,6 @@ const AllDefis = () => {
                     </div>
                 </div>
 
-                {/* Liste des défis */}
                 {filteredDefis.length === 0 ? (
                     <Card className="border-border">
                         <CardContent className="pt-12 pb-12 text-center">
@@ -280,7 +247,6 @@ const AllDefis = () => {
                     </div>
                 )}
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <Pagination
                         currentPage={currentPage}

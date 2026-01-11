@@ -1,9 +1,5 @@
 import React from 'react';
 
-/**
- * Composant pour afficher un badge de statut coloré
- * @param {string} statut - Le statut à afficher (ACTIF, EN_ATTENTE, INACTIF)
- */
 const StatusBadge = ({ statut }) => {
     const statusConfig = {
         ACTIF: {

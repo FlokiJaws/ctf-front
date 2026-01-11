@@ -1,17 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 
 /**
- * Hook personnalisé pour vérifier l'authentification
- * @param {string[]} allowedRoles - Rôles autorisés (optionnel)
- * @returns {object} { token, userInfo, userRole }
+ * Hook pour gérer l'authentification et les autorisations
+ * @param {string[]} allowedRoles - Rôles autorisés (null = tous les rôles connectés)
+ * @returns {{ token, userInfo, userRole, userEmail, isLoading }}
  */
 export const useAuth = (allowedRoles = null) => {
     const navigate = useNavigate();
-    const token = localStorage.getItem('token');
+    const [isLoading, setIsLoading] = useState(true);
+    const [authData, setAuthData] = useState({
+        token: null,
+        userInfo: null,
+        userRole: null,
+        userEmail: null
+    });
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+
         if (!token) {
             navigate('/login');
             return;
@@ -21,44 +29,39 @@ export const useAuth = (allowedRoles = null) => {
             const decoded = jwtDecode(token);
             const currentTime = Date.now() / 1000;
 
-            // Vérifier l'expiration
             if (decoded.exp && decoded.exp < currentTime) {
                 localStorage.removeItem('token');
                 navigate('/login');
                 return;
             }
 
-            // Vérifier les rôles si spécifiés
-            if (allowedRoles) {
-                const userRole = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
-                if (!allowedRoles.includes(userRole)) {
-                    navigate('/profile');
-                    return;
-                }
+            const userRole = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
+
+            if (allowedRoles && !allowedRoles.includes(userRole)) {
+                navigate('/profile');
+                return;
             }
+
+            setAuthData({
+                token,
+                userInfo: decoded,
+                userRole,
+                userEmail: decoded.sub
+            });
         } catch (e) {
             console.error('Erreur JWT:', e);
             localStorage.removeItem('token');
             navigate('/login');
+        } finally {
+            setIsLoading(false);
         }
-    }, [token, navigate, allowedRoles]);
+    }, [navigate, allowedRoles]);
 
-    // Retourner les infos si le token est valide
-    if (token) {
-        try {
-            const decoded = jwtDecode(token);
-            const userRole = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
-            return { token, userInfo: decoded, userRole };
-        } catch (e) {
-            return { token: null, userInfo: null, userRole: null };
-        }
-    }
-
-    return { token: null, userInfo: null, userRole: null };
+    return { ...authData, isLoading };
 };
 
 /**
- * Hook pour formater les dates de manière cohérente
+ * Hook pour formater les dates
  */
 export const useFormatDate = () => {
     return (dateString) => {
