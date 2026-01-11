@@ -23,6 +23,11 @@ import AllTeams from './pages/participant/AllTeams.jsx';
 import TeamRequests from './pages/participant/TeamRequests.jsx';
 import AdminTeams from './pages/admin/AdminTeams.jsx';
 import AdminTeamDetails from './pages/admin/AdminTeamDetails.jsx';
+import AllDefis from './pages/participant/AllDefis.jsx';
+import Messaging from './pages/Messaging.jsx';
+import Conversation from './pages/Conversation.jsx';
+import DefiDetail from './pages/participant/DefiDetail.jsx';
+import CreateDefi from './pages/admin/CreateDefi.jsx';
 
 
 function App() {
@@ -63,6 +68,11 @@ function App() {
                         <Route path="/team/requests" element={<TeamRequests />} />
                         <Route path="/admin/teams" element={<AdminTeams />} />
                         <Route path="/admin/teams/:teamId" element={<AdminTeamDetails />} />
+                        <Route path="/defis" element={<AllDefis />} />
+                        <Route path="/messaging" element={<Messaging />} />
+                        <Route path="/messaging/:conversationId" element={<Conversation />} />
+                        <Route path="/defis/:id" element={<DefiDetail />} />
+                        <Route path="/defis/create" element={<CreateDefi />} />
                     </Routes>
                 </main>
             </div>
