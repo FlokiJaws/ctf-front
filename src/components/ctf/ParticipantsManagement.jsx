@@ -5,11 +5,6 @@ import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
 import { Users, CheckCircle, XCircle, Clock, Search } from "lucide-react";
 
-/**
- * Composant générique de gestion des participants
- * @param {string} mode - "single" pour un CTF spécifique
- * @param {number} ctfId - ID du CTF
- */
 const ParticipantsManagement = ({ mode = "single", ctfId = null }) => {
     const [participations, setParticipations] = useState([]);
     const [filteredParticipations, setFilteredParticipations] = useState([]);
