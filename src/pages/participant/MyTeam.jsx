@@ -22,6 +22,7 @@ const MyTeam = () => {
     const [showTransferDialog, setShowTransferDialog] = useState(false);
     const [selectedMember, setSelectedMember] = useState(null);
     const [newChefEmail, setNewChefEmail] = useState('');
+    const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -128,6 +129,20 @@ const MyTeam = () => {
 
                     setMyTeam(teamData);
                     setIsChef(foundIsChef);
+
+                    // Si l'utilisateur est chef, récupérer le nombre de demandes en attente
+                    if (foundIsChef) {
+                        try {
+                            const requestsResponse = await axios.get(
+                                `http://localhost:8080/equipes/${teamId}/members?candidature_statut=EN_ATTENTE`,
+                                { headers: { Authorization: `Bearer ${token}` } }
+                            );
+                            setPendingRequestsCount(requestsResponse.data?.length || 0);
+                        } catch (reqErr) {
+                            console.warn('Erreur récupération demandes:', reqErr);
+                            setPendingRequestsCount(0);
+                        }
+                    }
                 } catch (detailErr) {
                     console.error('Erreur récupération détails:', detailErr);
                     setError('Impossible de récupérer les détails de l\'équipe');
@@ -302,6 +317,24 @@ const MyTeam = () => {
                 ) : (
                     // Affichage de l'équipe
                     <>
+                        {/* Info pour le chef */}
+                        {isChef && (
+                            <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+                                <CardContent className="pt-6">
+                                    <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+                                        <Crown className="w-5 h-5" />
+                                        Vos privilèges de chef d'équipe
+                                    </h3>
+                                    <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+                                        <li>Gérer les demandes d'adhésion à votre équipe</li>
+                                        <li>Expulser des membres de l'équipe</li>
+                                        <li>Promouvoir un membre au rang de chef</li>
+                                        <li>Inscrire l'équipe à des CTFs</li>
+                                    </ul>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         <Card className="border-2 border-primary/40 shadow-lg">
                             <CardHeader className="border-b border-border">
                                 <div className="flex items-center justify-between">
@@ -326,10 +359,15 @@ const MyTeam = () => {
                                         <Button
                                             variant="outline"
                                             onClick={() => navigate('/team/requests')}
-                                            className="flex items-center gap-2"
+                                            className="flex items-center gap-2 relative"
                                         >
                                             <Bell size={18} />
                                             Demandes
+                                            {pendingRequestsCount > 0 && (
+                                                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                                    {pendingRequestsCount}
+                                                 </span>
+                                            )}
                                         </Button>
                                     )}
                                 </div>
@@ -470,24 +508,6 @@ const MyTeam = () => {
                                 </Button>
                             </CardFooter>
                         </Card>
-
-                        {/* Info pour le chef */}
-                        {isChef && (
-                            <Card className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
-                                <CardContent className="pt-6">
-                                    <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
-                                        <Crown className="w-5 h-5" />
-                                        Vos privilèges de chef d'équipe
-                                    </h3>
-                                    <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-                                        <li>Gérer les demandes d'adhésion à votre équipe</li>
-                                        <li>Expulser des membres de l'équipe</li>
-                                        <li>Promouvoir un membre au rang de chef</li>
-                                        <li>Inscrire l'équipe à des CTFs</li>
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        )}
                     </>
                 )}
             </div>

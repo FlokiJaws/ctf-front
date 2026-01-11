@@ -46,12 +46,12 @@ const TeamRequests = () => {
         setError('');
 
         try {
-            // Récupérer toutes les équipes
-            const response = await axios.get('http://localhost:8080/equipes/all', {
+            // Récupérer toutes les équipes pour trouver celle de l'utilisateur
+            const teamsResponse = await axios.get('http://localhost:8080/equipes/all', {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            const allEquipes = response.data || [];
+            const allEquipes = teamsResponse.data || [];
             const userTeam = allEquipes.find(equipe => equipe.chefEquipeEmail === email);
 
             if (!userTeam) {
@@ -60,7 +60,6 @@ const TeamRequests = () => {
                 return;
             }
 
-            // Utiliser equipeId au lieu de id
             const teamId = userTeam.equipeId || userTeam.id;
 
             if (!teamId) {
@@ -69,27 +68,19 @@ const TeamRequests = () => {
                 return;
             }
 
-            // Normaliser les données de l'équipe
             setMyTeam({
                 id: teamId,
                 nom: userTeam.nomEquipe || userTeam.nom,
                 chefEquipeEmail: userTeam.chefEquipeEmail
             });
 
-            // Récupérer les détails de l'équipe avec les demandes
-            const detailsResponse = await axios.get(`http://localhost:8080/equipes/${teamId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            // Récupérer les demandes en attente via l'endpoint existant
+            const requestsResponse = await axios.get(
+                `http://localhost:8080/equipes/${teamId}/members?candidature_statut=EN_ATTENTE`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
 
-            console.log('Détails équipe pour demandes:', detailsResponse.data); // DEBUG
-
-            // Extraire les demandes en attente - CORRECTION ICI
-            const pendingRequests = detailsResponse.data.membres?.filter(
-                membre => membre.statut === 'EN_ATTENTE'
-            ) || [];
-
-            console.log('Demandes en attente:', pendingRequests); // DEBUG
-            setRequests(pendingRequests);
+            setRequests(requestsResponse.data || []);
         } catch (err) {
             console.error('Erreur récupération demandes:', err);
             setError(err.response?.data?.message || 'Erreur lors de la récupération des demandes');
@@ -105,7 +96,7 @@ const TeamRequests = () => {
 
         try {
             await axios.post('http://localhost:8080/equipes/respond_to_request', {
-                candidatureId: selectedRequest.id,
+                candidatureId: selectedRequest.candidatureId || selectedRequest.id,
                 accept: true
             }, {
                 headers: {
@@ -134,7 +125,7 @@ const TeamRequests = () => {
 
         try {
             await axios.post('http://localhost:8080/equipes/respond_to_request', {
-                candidatureId: selectedRequest.id,
+                candidatureId: selectedRequest.candidatureId || selectedRequest.id,
                 accept: false
             }, {
                 headers: {
@@ -222,7 +213,7 @@ const TeamRequests = () => {
                 ) : (
                     <div className="space-y-4">
                         {requests.map((request, index) => (
-                            <Card key={request.id || index} className="border-2 border-primary/40">
+                            <Card key={request.candidatureId || request.id || index} className="border-2 border-primary/40">
                                 <CardContent className="pt-6">
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex items-center gap-4 flex-1">
@@ -244,7 +235,7 @@ const TeamRequests = () => {
                                                 </div>
                                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                     <Clock size={12} />
-                                                    <span>Demande envoyée le {formatDate(request.dateCreation || request.createdAt)}</span>
+                                                    <span>Demande envoyée le {formatDate(request.joinedAt || request.createdAt)}</span>
                                                 </div>
                                             </div>
                                         </div>

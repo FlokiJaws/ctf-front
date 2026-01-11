@@ -5,13 +5,12 @@ import axios from 'axios';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card.jsx";
 import { Button } from "@/components/ui/button.jsx";
 import { Input } from "@/components/ui/input.jsx";
-import { Users, ArrowLeft, Crown, Search, Send } from "lucide-react";
+import { Users, ArrowLeft, Crown, Search, Eye, AlertCircle } from "lucide-react";
 import Pagination from "@/components/common/Pagination.jsx";
-import ConfirmDialog from "@/components/common/ConfirmDialog.jsx";
 
 const TEAMS_PER_PAGE = 12;
 
-const AllTeams = () => {
+const AdminTeams = () => {
     const navigate = useNavigate();
     const [allTeams, setAllTeams] = useState([]);
     const [filteredTeams, setFilteredTeams] = useState([]);
@@ -19,11 +18,6 @@ const AllTeams = () => {
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [userEmail, setUserEmail] = useState('');
-    const [userTeamId, setUserTeamId] = useState(null);
-
-    const [showJoinDialog, setShowJoinDialog] = useState(false);
-    const [selectedTeam, setSelectedTeam] = useState(null);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -36,13 +30,12 @@ const AllTeams = () => {
             const decoded = jwtDecode(token);
             const role = Array.isArray(decoded.groups) ? decoded.groups[0] : decoded.groups;
 
-            if (role !== 'PARTICIPANT') {
+            if (role !== 'ADMINISTRATEUR') {
                 navigate('/profile');
                 return;
             }
 
-            setUserEmail(decoded.sub);
-            fetchAllTeams(token, decoded.sub);
+            fetchAllTeams(token);
         } catch (e) {
             console.error('Erreur JWT:', e);
             navigate('/login');
@@ -53,7 +46,7 @@ const AllTeams = () => {
         applyFilters();
     }, [allTeams, searchTerm]);
 
-    const fetchAllTeams = async (token, email) => {
+    const fetchAllTeams = async (token) => {
         setLoading(true);
         setError('');
 
@@ -64,10 +57,6 @@ const AllTeams = () => {
 
             const teams = response.data || [];
             setAllTeams(teams);
-
-            // Vérifier si l'utilisateur est déjà dans une équipe
-            const userTeam = teams.find(team => team.chefEquipeEmail === email);
-            setUserTeamId(userTeam?.id || null);
         } catch (err) {
             console.error('Erreur récupération équipes:', err);
             setError(err.response?.data?.message || 'Erreur lors de la récupération des équipes');
@@ -82,34 +71,14 @@ const AllTeams = () => {
         if (searchTerm) {
             const search = searchTerm.toLowerCase();
             filtered = filtered.filter(team =>
+                team.nomEquipe?.toLowerCase().includes(search) ||
                 team.nom?.toLowerCase().includes(search) ||
-                team.chefEquipePseudo?.toLowerCase().includes(search) ||
                 team.chefEquipeEmail?.toLowerCase().includes(search)
             );
         }
 
         setFilteredTeams(filtered);
         setCurrentPage(1);
-    };
-
-    const handleJoinRequest = async () => {
-        if (!selectedTeam) return;
-
-        const token = localStorage.getItem('token');
-
-        try {
-            await axios.post(`http://localhost:8080/equipes/request?equipeId=${selectedTeam.id}`, {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setShowJoinDialog(false);
-            setSelectedTeam(null);
-            alert('Votre demande a été envoyée avec succès !');
-        } catch (err) {
-            console.error('Erreur demande rejoindre:', err);
-            setError(err.response?.data?.message || 'Erreur lors de l\'envoi de la demande');
-            setShowJoinDialog(false);
-        }
     };
 
     const generateDefaultLogo = (name) => {
@@ -145,22 +114,23 @@ const AllTeams = () => {
                     <div>
                         <h1 className="text-4xl font-bold flex items-center gap-3">
                             <Users className="text-primary" />
-                            Toutes les Équipes
+                            Gestion des Équipes
                         </h1>
                         <p className="text-muted-foreground mt-1">
                             {filteredTeams.length} équipe{filteredTeams.length > 1 ? 's' : ''} trouvée{filteredTeams.length > 1 ? 's' : ''}
                         </p>
                     </div>
-                    <Button variant="outline" onClick={() => navigate('/my-team')} className="flex items-center space-x-2">
+                    <Button variant="outline" onClick={() => navigate('/admin/dashboard')} className="flex items-center space-x-2">
                         <ArrowLeft size={18} />
-                        <span>Mon équipe</span>
+                        <span>Dashboard</span>
                     </Button>
                 </div>
 
                 {/* Message d'erreur */}
                 {error && (
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg">
-                        {error}
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg flex items-start gap-3">
+                        <AlertCircle className="flex-shrink-0 mt-0.5" size={20} />
+                        <p>{error}</p>
                     </div>
                 )}
 
@@ -177,13 +147,6 @@ const AllTeams = () => {
                     </div>
                 </div>
 
-                {/* Info si l'utilisateur a déjà une équipe */}
-                {userTeamId && (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 px-4 py-3 rounded-lg">
-                        Vous êtes déjà membre d'une équipe. Vous devez la quitter avant de rejoindre une autre équipe.
-                    </div>
-                )}
-
                 {/* Liste des équipes */}
                 {filteredTeams.length === 0 ? (
                     <Card className="border-border">
@@ -199,7 +162,7 @@ const AllTeams = () => {
                             <p className="text-muted-foreground">
                                 {searchTerm
                                     ? 'Essayez de modifier votre recherche'
-                                    : 'Soyez le premier à créer une équipe !'
+                                    : 'Aucune équipe n\'a été créée pour le moment'
                                 }
                             </p>
                         </CardContent>
@@ -207,34 +170,25 @@ const AllTeams = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {paginatedTeams.map((team, index) => {
-                            const isUserTeam = team.id === userTeamId;
-                            const isUserChef = team.chefEquipeEmail === userEmail;
+                            const teamId = team.equipeId || team.id;
+                            const teamName = team.nomEquipe || team.nom;
 
                             return (
                                 <Card
-                                    key={team.id || index}
-                                    className={`border-2 transition-all duration-300 hover:shadow-lg ${
-                                        isUserTeam
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-primary/40 hover:border-primary/70'
-                                    }`}
+                                    key={teamId || index}
+                                    className="border-2 border-primary/40 hover:border-primary/70 transition-all duration-300 hover:shadow-lg"
                                 >
                                     <CardHeader className="pb-4">
                                         <div className="flex items-center gap-4">
                                             {/* Logo de l'équipe */}
                                             <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white text-xl font-bold shadow-md flex-shrink-0">
-                                                {generateDefaultLogo(team.nom)}
+                                                {generateDefaultLogo(teamName)}
                                             </div>
 
                                             <div className="flex-1 min-w-0">
                                                 <CardTitle className="text-xl truncate">
-                                                    {team.nom}
+                                                    {teamName}
                                                 </CardTitle>
-                                                {isUserTeam && (
-                                                    <span className="text-xs text-primary font-medium">
-                                                        Votre équipe
-                                                    </span>
-                                                )}
                                             </div>
                                         </div>
                                     </CardHeader>
@@ -268,27 +222,13 @@ const AllTeams = () => {
                                     </CardContent>
 
                                     <CardFooter className="pt-4 border-t border-border">
-                                        {isUserTeam ? (
-                                            <Button
-                                                variant="outline"
-                                                className="w-full"
-                                                onClick={() => navigate('/my-team')}
-                                            >
-                                                Voir mon équipe
-                                            </Button>
-                                        ) : (
-                                            <Button
-                                                className="w-full flex items-center gap-2"
-                                                onClick={() => {
-                                                    setSelectedTeam(team);
-                                                    setShowJoinDialog(true);
-                                                }}
-                                                disabled={!!userTeamId}
-                                            >
-                                                <Send size={16} />
-                                                {userTeamId ? 'Déjà dans une équipe' : 'Demander à rejoindre'}
-                                            </Button>
-                                        )}
+                                        <Button
+                                            className="w-full flex items-center gap-2"
+                                            onClick={() => navigate(`/admin/teams/${teamId}`)}
+                                        >
+                                            <Eye size={16} />
+                                            Voir les détails
+                                        </Button>
                                     </CardFooter>
                                 </Card>
                             );
@@ -305,22 +245,8 @@ const AllTeams = () => {
                     />
                 )}
             </div>
-
-            {/* Dialog: Demander à rejoindre */}
-            <ConfirmDialog
-                show={showJoinDialog}
-                title="Demander à rejoindre"
-                message={`Envoyer une demande pour rejoindre l'équipe "${selectedTeam?.nom}" ?`}
-                onConfirm={handleJoinRequest}
-                onCancel={() => {
-                    setShowJoinDialog(false);
-                    setSelectedTeam(null);
-                }}
-                confirmLabel="Envoyer la demande"
-                confirmVariant="default"
-            />
         </div>
     );
 };
 
-export default AllTeams;
+export default AdminTeams;

@@ -21,6 +21,8 @@ import MyTeam from './pages/participant/MyTeam.jsx';
 import CreateTeam from './pages/participant/CreateTeam.jsx';
 import AllTeams from './pages/participant/AllTeams.jsx';
 import TeamRequests from './pages/participant/TeamRequests.jsx';
+import AdminTeams from './pages/admin/AdminTeams.jsx';
+import AdminTeamDetails from './pages/admin/AdminTeamDetails.jsx';
 
 
 function App() {
@@ -59,6 +61,8 @@ function App() {
                         <Route path="/team/create" element={<CreateTeam />} />
                         <Route path="/all-teams" element={<AllTeams />} />
                         <Route path="/team/requests" element={<TeamRequests />} />
+                        <Route path="/admin/teams" element={<AdminTeams />} />
+                        <Route path="/admin/teams/:teamId" element={<AdminTeamDetails />} />
                     </Routes>
                 </main>
             </div>

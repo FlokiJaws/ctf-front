@@ -117,12 +117,21 @@ const Navbar = ({theme, toggleTheme}) => {
 
                                             {/* Dashboard Admin */}
                                             {userRole === 'ADMINISTRATEUR' && (
-                                                <Link to="/admin/dashboard" onClick={() => setShowDropdown(false)}>
-                                                    <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
-                                                        <ShieldCheck size={16} />
-                                                        <span>Dashboard</span>
-                                                    </div>
-                                                </Link>
+                                                <>
+                                                    <Link to="/admin/dashboard" onClick={() => setShowDropdown(false)}>
+                                                        <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
+                                                            <ShieldCheck size={16} />
+                                                            <span>Dashboard</span>
+                                                        </div>
+                                                    </Link>
+
+                                                    <Link to="/admin/teams" onClick={() => setShowDropdown(false)}>
+                                                        <div className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center space-x-2">
+                                                            <Users size={16} />
+                                                            <span>Équipes</span>
+                                                        </div>
+                                                    </Link>
+                                                </>
                                             )}
 
                                             {/* Mes CTFs - Participant */}
